@@ -12,7 +12,7 @@ const app = express();
 // Connect Database
 await connectDB();
 
-//  CORS Config (Frontend URL allow karo)
+// ✅ Proper CORS Config
 app.use(cors({
   origin: [
     "http://localhost:5173",                 // local frontend
@@ -22,19 +22,11 @@ app.use(cors({
   credentials: true
 }));
 
-//  Agar kabhi preflight issue aaye to manual headers bhi add kar do
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-
 // Middleware
 app.use(express.json());
 
 // Routes
-app.get("/", (req, res) => res.send("Server is running"));
+app.get("/", (req, res) => res.send("Server is running ✅"));
 app.use("/api/user", userRouter);
 app.use("/api/owner", ownerRouter);
 app.use("/api/bookings", bookingRouter);
