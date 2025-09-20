@@ -14,7 +14,10 @@ await connectDB();
 
 //  CORS Config (Frontend URL allow karo)
 app.use(cors({
-  origin: "http://localhost:5173",   // Vite frontend
+  origin: [
+    "http://localhost:5173",                 // local frontend
+    "https://carrentalfull-main.onrender.com" // deployed frontend
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
