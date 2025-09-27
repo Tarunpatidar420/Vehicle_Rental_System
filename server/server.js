@@ -1,3 +1,5 @@
+import vehicleRouter from "./routes/vehicleRoutes.js";
+
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
@@ -30,6 +32,8 @@ app.get("/", (req, res) => res.send("Server is running ✅"));
 app.use("/api/user", userRouter);
 app.use("/api/owner", ownerRouter);
 app.use("/api/bookings", bookingRouter);
+app.use("/api/vehicles", vehicleRouter);
+
 
 // Start Server
 const PORT = process.env.PORT || 5000;
