@@ -1,41 +1,49 @@
-import Vehicle from "../models/Car.js";
+import Car from "../models/Car.js";   // ✅ Directly Car import
 import Booking from "../models/Booking.js";
 
-// Helper function to check car availability for given dates
-const checkAvailability = async (carId, pickupDate, returnDate) => {
-  const bookings = await Booking.find({
-    car: carId,
-    pickupDate: { $lte: returnDate },
-    returnDate: { $gte: pickupDate },
-    status: { $ne: "cancelled" } // 👈 cancelled bookings ignore
-  });
-  return bookings.length === 0;
+// Helper function to check car availability based on count
+const checkAvailability = async (car, pickupDate, returnDate) => {
+  try {
+    const bookings = await Booking.find({
+      car: car._id,
+      pickupDate: { $lte: returnDate },
+      returnDate: { $gte: pickupDate },
+      status: { $ne: "cancelled" }, // Cancelled bookings ignore
+    });
+
+    // ✅ Agar booked < availableCount hai to car available hai
+    return bookings.length < (car.availableCount || 1);
+  } catch (err) {
+    console.error("Error in checkAvailability:", err.message);
+    return false;
+  }
 };
 
 // ✅ Get Available Vehicles (with optional date filters)
 export const getAvailableVehicles = async (req, res) => {
   try {
-    const { pickupDate, returnDate } = req.query; // 👈 query params se date le lo
+    let { pickupDate, returnDate } = req.query;
 
-    // Pehle sirf active/available vehicles fetch karo
-    let vehicles = await Vehicle.find({ status: "available" });
+    // Dates ko safe parse karo
+    if (pickupDate) pickupDate = new Date(pickupDate);
+    if (returnDate) returnDate = new Date(returnDate);
+
+    // Sirf active cars (jo owner ne available rakhe hain)
+    let cars = await Car.find({ isAvailable: true });
 
     if (pickupDate && returnDate) {
-      // Agar date diya gaya hai to unke basis pe filter karo
-      const availablePromises = vehicles.map(async (car) => {
-        const isAvailable = await checkAvailability(
-          car._id,
-          pickupDate,
-          returnDate
-        );
+      // Date diya gaya hai to check availability with count
+      const availablePromises = cars.map(async (car) => {
+        const isAvailable = await checkAvailability(car, pickupDate, returnDate);
         return isAvailable ? car : null;
       });
 
-      vehicles = (await Promise.all(availablePromises)).filter((v) => v !== null);
+      cars = (await Promise.all(availablePromises)).filter((c) => c !== null);
     }
 
-    res.json({ success: true, vehicles });
+    res.json({ success: true, cars });
   } catch (error) {
+    console.error("Error in getAvailableVehicles:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

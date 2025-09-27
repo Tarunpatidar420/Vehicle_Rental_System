@@ -20,11 +20,11 @@ export const AppProvider = ({ children }) => {
 
   const [cars, setCars] = useState([]);
 
-  // Function to check if user is logged in
+  // ✅ Check if user is logged in
   const fetchUser = async () => {
     try {
       const { data } = await axios.get("/api/user/data");
-      console.log("fetchUser response:", data); // debug ke liye
+      console.log("fetchUser response:", data);
 
       if (data?.success && data?.user) {
         setUser(data.user);
@@ -41,17 +41,21 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Function to fetch all cars from the server
+  // ✅ Fetch all cars from backend
   const fetchCars = async () => {
     try {
-      const { data } = await axios.get("/api/user/cars");
-      data?.success ? setCars(data.cars) : toast.error(data.message);
+      const { data } = await axios.get("/api/user/cars"); // ✅ Correct endpoint
+      if (data?.success) {
+        setCars(data.cars);
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
       toast.error(error.message);
     }
   };
 
-  // Function to log out the user
+  // ✅ Logout user
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
@@ -61,14 +65,14 @@ export const AppProvider = ({ children }) => {
     toast.success("You have been logged out");
   };
 
-  // useEffect to retrieve the token from localStorage
+  // ✅ Load token and cars on first render
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     setToken(storedToken);
     fetchCars();
   }, []);
 
-  // useEffect to fetch user data when token is available
+  // ✅ Fetch user if token exists
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `${token}`;
@@ -102,6 +106,7 @@ export const AppProvider = ({ children }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
+// ✅ Hook for using context
 export const useAppContext = () => {
   return useContext(AppContext);
 };

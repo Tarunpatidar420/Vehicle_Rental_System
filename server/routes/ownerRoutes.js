@@ -1,17 +1,54 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import { addCar, changeRoleToOwner, deleteCar, getDashboardData, getOwnerCars, toggleCarAvailability, updateUserImage } from "../controllers/ownerController.js";
+import {
+  addCar,
+  changeRoleToOwner,
+  deleteCar,
+  getDashboardData,
+  getOwnerCars,
+  toggleCarAvailability,
+  updateUserImage,
+} from "../controllers/ownerController.js";
 import upload from "../middleware/multer.js";
 
 const ownerRouter = express.Router();
 
-ownerRouter.post("/change-role", protect, changeRoleToOwner)
-ownerRouter.post("/add-car", upload.single("image"), protect, addCar)
-ownerRouter.get("/cars", protect, getOwnerCars)
-ownerRouter.post("/toggle-car", protect, toggleCarAvailability)
-ownerRouter.post("/delete-car", protect, deleteCar)
+// ✅ Role change
+ownerRouter.post("/change-role", protect, changeRoleToOwner);
 
-ownerRouter.get('/dashboard', protect, getDashboardData)
-ownerRouter.post('/update-image', upload.single("image"), protect, updateUserImage)
+// ✅ Add Car (multiple images optional, max 5)
+// Agar koi image na bheje to bhi error nahi aayega
+ownerRouter.post("/add-car", protect, (req, res, next) => {
+  upload.array("images", 5)(req, res, function (err) {
+    if (err) {
+      console.error("Multer Error in /add-car:", err.message);
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    next();
+  });
+}, addCar);
+
+// ✅ Get Owner Cars
+ownerRouter.get("/cars", protect, getOwnerCars);
+
+// ✅ Toggle Availability
+ownerRouter.post("/toggle-car", protect, toggleCarAvailability);
+
+// ✅ Delete Car
+ownerRouter.post("/delete-car", protect, deleteCar);
+
+// ✅ Dashboard Data
+ownerRouter.get("/dashboard", protect, getDashboardData);
+
+// ✅ Update Profile Image (optional)
+ownerRouter.post("/update-image", protect, (req, res, next) => {
+  upload.single("image")(req, res, function (err) {
+    if (err) {
+      console.error("Multer Error in /update-image:", err.message);
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    next();
+  });
+}, updateUserImage);
 
 export default ownerRouter;

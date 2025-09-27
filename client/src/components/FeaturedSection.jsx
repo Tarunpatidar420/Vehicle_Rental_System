@@ -15,6 +15,9 @@ const FeaturedSection = () => {
   const queryParams = new URLSearchParams(location.search)
   const exchangeBookingId = queryParams.get("exchangeBookingId")
 
+  // ✅ sirf available cars
+  const availableCars = cars.filter(car => car.isAvailable)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -39,7 +42,7 @@ const FeaturedSection = () => {
         transition={{ delay: 0.5, duration: 1 }}
         className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-18'
       >
-        {cars.slice(0, 6).map((car) => (
+        {availableCars.slice(0, 6).map((car) => (
           <motion.div
             key={car._id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -52,7 +55,7 @@ const FeaturedSection = () => {
         ))}
       </motion.div>
 
-      {!exchangeBookingId && (
+      {!exchangeBookingId && availableCars.length > 6 && (
         <motion.button
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

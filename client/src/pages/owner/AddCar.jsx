@@ -5,334 +5,337 @@ import { useAppContext } from '../../context/AppContext'
 import toast from 'react-hot-toast'
 
 const AddCar = () => {
+  const { axios, currency } = useAppContext()
 
-  const {axios, currency} = useAppContext()
-
-  const [image, setImage] = useState(null)
+  const [images, setImages] = useState([])
   const [car, setCar] = useState({
-  brand: '',
-  model: '',
-  year: 0,
-  pricePerDay: 0,
-  category: '',
-  transmission: '',
-  fuel_type: '',
-  seating_capacity: 0,
-  location: {
-    country: '',
-    state: '',
-    district: '',
-    tehsil: '',
-    city: '',
-    village: '',
+    brand: '',
+    model: '',
+    year: 0,
+    pricePerDay: 0,
+    categories: [],
+    transmission: '',
+    fuel_type: '',
+    seating_capacity: 0,
+    locationLine1: '',
+    locationLine2: '',
+    pincode: '',
+    count: 1,
+    description: '',
     whatsapp: '',
-    email: ''
-  },
-  description: '',
-})
-
+    email: '',
+  })
 
   const [isLoading, setIsLoading] = useState(false)
-  const onSubmitHandler = async (e) => {
-  e.preventDefault()
-  if (isLoading) return null
 
-  setIsLoading(true)
-  try {
-    // ✅ Location को string में बदलना
-    const locationString = `
-Country: ${car.location.country}
-State: ${car.location.state}
-District: ${car.location.district}
-Tehsil: ${car.location.tehsil}
-City: ${car.location.city}
-Village: ${car.location.village}
-WhatsApp: ${car.location.whatsapp}
-Email: ${car.location.email}
-    `.trim()
-
-    const carDataToSend = {
-      ...car,
-      location: locationString,  // 👈 अब backend को string जाएगा
+  const onImageChange = (e) => {
+    const files = Array.from(e.target.files)
+    if (files.length + images.length > 4) {
+      toast.error("You can upload up to 4 images only")
+      return
     }
-
-    const formData = new FormData()
-    formData.append('image', image)
-    formData.append('carData', JSON.stringify(carDataToSend))
-
-    const { data } = await axios.post('/api/owner/add-car', formData)
-
-    if (data.success) {
-      toast.success(data.message)
-      setImage(null)
-      setCar({
-        brand: '',
-        model: '',
-        year: 0,
-        pricePerDay: 0,
-        category: '',
-        transmission: '',
-        fuel_type: '',
-        seating_capacity: 0,
-        location: {
-          country: '',
-          state: '',
-          district: '',
-          tehsil: '',
-          city: '',
-          village: '',
-          whatsapp: '',
-          email: ''
-        },
-        description: '',
-      })
-    } else {
-      toast.error(data.message)
-    }
-  } catch (error) {
-    toast.error(error.message)
-  } finally {
-    setIsLoading(false)
+    setImages([...images, ...files])
   }
-}
 
-    return (
-    <div className='px-4 py-10 md:px-10 flex-1'>
+  const onCategoryChange = (e) => {
+    const options = Array.from(e.target.selectedOptions, (option) => option.value)
+    setCar({ ...car, categories: options })
+  }
 
-      <Title title="Add New Car" subTitle="Fill in details to list a new car for booking, including pricing, availability, and car specifications."/>
+  const onSubmitHandler = async (e) => {
+    e.preventDefault()
+    if (isLoading) return null
+    setIsLoading(true)
 
-      <form onSubmit={onSubmitHandler} className='flex flex-col gap-5 text-gray-500 text-sm mt-6 max-w-xl'>
+    try {
+      const locationString = `${car.locationLine1 || ''}, ${car.locationLine2 || ''}, ${car.pincode || ''}`
 
-        {/* Car Image */}
-        <div className='flex items-center gap-2 w-full'>
-          <label htmlFor="car-image">
-            <img src={image ? URL.createObjectURL(image) : assets.upload_icon} alt="" className='h-14 rounded cursor-pointer'/>
-            <input type="file" id="car-image" accept="image/*" hidden onChange={e=> setImage(e.target.files[0])}/>
-          </label>
-          <p className='text-sm text-gray-500'>Upload a picture of your car</p>
+      const carDataToSend = {
+        ...car,
+        location: locationString,
+      }
+
+      const formData = new FormData()
+
+      if (images.length > 0) {
+        images.forEach((img) => formData.append('images', img))
+      }
+
+      formData.append(
+        'carData',
+        JSON.stringify({
+          ...carDataToSend,
+          categories: car.categories || []
+        })
+      )
+
+      const { data } = await axios.post('/api/owner/add-car', formData)
+
+      if (data.success) {
+        toast.success(data.message)
+        setImages([])
+        setCar({
+          brand: '',
+          model: '',
+          year: 0,
+          pricePerDay: 0,
+          categories: [],
+          transmission: '',
+          fuel_type: '',
+          seating_capacity: 0,
+          locationLine1: '',
+          locationLine2: '',
+          pincode: '',
+          count: 1,
+          description: '',
+          whatsapp: '',
+          email: '',
+        })
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="px-4 py-10 md:px-10 flex-1">
+      <Title
+        title="Add New Vehicle"
+        subTitle="Fill in details to list a new vehicle for booking, including pricing, availability, and vehicle specifications."
+      />
+
+      <form
+        onSubmit={onSubmitHandler}
+        className="flex flex-col gap-5 text-gray-500 text-sm mt-6 max-w-xl"
+      >
+        {/* Vehicle Images (Optional) */}
+        <div className="flex flex-col gap-2 w-full">
+          <label htmlFor="car-images">Upload Vehicle Images (optional, up to 4)</label>
+          <input
+            type="file"
+            id="car-images"
+            accept="image/*"
+            multiple
+            onChange={onImageChange}
+          />
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {images.map((img, index) => (
+              <img
+                key={index}
+                src={URL.createObjectURL(img)}
+                alt="preview"
+                className="h-16 w-16 object-cover rounded"
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Car Brand & Model */}
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-          <div className='flex flex-col w-full'>
+        {/* Brand & Model */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col w-full">
             <label>Brand</label>
-            <input type="text" placeholder="e.g. BMW, Mercedes, Audi..." required className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none' value={car.brand} onChange={e=> setCar({...car, brand: e.target.value})}/>
+            <input
+              type="text"
+              placeholder="e.g. BMW, Mahindra"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.brand}
+              onChange={(e) => setCar({ ...car, brand: e.target.value })}
+            />
           </div>
-          <div className='flex flex-col w-full'>
+          <div className="flex flex-col w-full">
             <label>Model</label>
-            <input type="text" placeholder="e.g. X5, E-Class, M4..." required className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none' value={car.model} onChange={e=> setCar({...car, model: e.target.value})}/>
+            <input
+              type="text"
+              placeholder="e.g. X5, Bolero"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.model}
+              onChange={(e) => setCar({ ...car, model: e.target.value })}
+            />
           </div>
-          
         </div>
 
-        {/* Car Year, Price, Category */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-          <div className='flex flex-col w-full'>
+        {/* Year, Price, Count, Category */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="flex flex-col w-full">
             <label>Year</label>
-            <input type="number" placeholder="2025" required className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none' value={car.year} onChange={e=> setCar({...car, year: e.target.value})}/>
+            <input
+              type="number"
+              placeholder="2025"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.year}
+              onChange={(e) => setCar({ ...car, year: e.target.value })}
+            />
           </div>
-          <div className='flex flex-col w-full'>
+          <div className="flex flex-col w-full">
             <label>Daily Price ({currency})</label>
-            <input type="number" placeholder="100" required className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none' value={car.pricePerDay} onChange={e=> setCar({...car, pricePerDay: e.target.value})}/>
+            <input
+              type="number"
+              placeholder="100"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.pricePerDay}
+              onChange={(e) => setCar({ ...car, pricePerDay: e.target.value })}
+            />
           </div>
-          <div className='flex flex-col w-full'>
-  <label>Category</label>
-  <select
-    onChange={e => setCar({ ...car, category: e.target.value })}
-    value={car.category}
-    className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none'
-  >
-    <option value="">Select a category</option>
-    <option value="Car">Car</option>
-    <option value="Tractor">Tractor</option>
-    <option value="Bike">Bike</option>
-    <option value="Agriculture Machinery">Agriculture Machinery</option>
-  </select>
-</div>
-
-        </div>
-
-         {/* Car Transmission, Fuel Type, Seating Capacity */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-          <div className='flex flex-col w-full'>
-            <label>Transmission</label>
-            <select onChange={e=> setCar({...car, transmission: e.target.value})} value={car.transmission} className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none'>
-              <option value="">Select a transmission</option>
-              <option value="Automatic">Automatic</option>
-              <option value="Manual">Manual</option>
-              <option value="Semi-Automatic">Semi-Automatic</option>
+          <div className="flex flex-col w-full">
+            <label>Count (Available Vehicles)</label>
+            <input
+              type="number"
+              min="1"
+              placeholder="e.g. 5"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.count}
+              onChange={(e) => setCar({ ...car, count: e.target.value })}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <label>Categories (optional)</label>
+            <select
+              multiple
+              onChange={onCategoryChange}
+              value={car.categories}
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none h-28"
+            >
+              <option value="Car">Car</option>
+              <option value="Bike">Bike</option>
+              <option value="Tractor">Tractor</option>
+              <option value="Agriculture Machinery">Agriculture Machinery</option>
             </select>
           </div>
-          <div className='flex flex-col w-full'>
+        </div>
+
+        {/* Transmission, Fuel, Seats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="flex flex-col w-full">
+            <label>Transmission</label>
+            <select
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.transmission}
+              onChange={(e) => setCar({ ...car, transmission: e.target.value })}
+            >
+              <option value="">Select</option>
+              <option value="Manual">Manual</option>
+              <option value="Automatic">Automatic</option>
+            </select>
+          </div>
+          <div className="flex flex-col w-full">
             <label>Fuel Type</label>
-            <select onChange={e=> setCar({...car, fuel_type: e.target.value})} value={car.fuel_type} className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none'>
-              <option value="">Select a fuel type</option>
-              <option value="Gas">Gas</option>
-              <option value="Diesel">Diesel</option>
+            <select
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.fuel_type}
+              onChange={(e) => setCar({ ...car, fuel_type: e.target.value })}
+            >
+              <option value="">Select</option>
               <option value="Petrol">Petrol</option>
+              <option value="Diesel">Diesel</option>
               <option value="Electric">Electric</option>
               <option value="Hybrid">Hybrid</option>
             </select>
           </div>
-          <div className='flex flex-col w-full'>
+          <div className="flex flex-col w-full">
             <label>Seating Capacity</label>
-            <input type="number" placeholder="4" required className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none' value={car.seating_capacity} onChange={e=> setCar({...car, seating_capacity: e.target.value})}/>
+            <input
+              type="number"
+              min="1"
+              placeholder="e.g. 5"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.seating_capacity}
+              onChange={(e) => setCar({ ...car, seating_capacity: e.target.value })}
+            />
           </div>
         </div>
 
-         {/* Car Location */}
-         {/* Car Location */}
-
-<div className="w-full p-4 border border-borderColor rounded-md text-base bg-gray-50 whitespace-pre-line overflow-auto max-h-60">
-
-  <label className="text-lg font-semibold">Location & Contact</label>
-
-  {/* Country */}
-  <input
-    type="text"
-    placeholder="Country"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, country: e.target.value }
-      })
-    }
-  />
-
-  {/* State */}
-  <input
-    type="text"
-    placeholder="State"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, state: e.target.value }
-      })
-    }
-  />
-
-  {/* District */}
-  <input
-    type="text"
-    placeholder="District"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, district: e.target.value }
-      })
-    }
-  />
-
-  {/* Tehsil */}
-  <input
-    type="text"
-    placeholder="Tehsil"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, tehsil: e.target.value }
-      })
-    }
-  />
-
-  {/* City */}
-  <input
-    type="text"
-    placeholder="City"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, city: e.target.value }
-      })
-    }
-  />
-
-  {/* Village */}
-  <input
-    type="text"
-    placeholder="Village"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, village: e.target.value }
-      })
-    }
-  />
-
-  {/* WhatsApp */}
-  <input
-    type="text"
-    placeholder="WhatsApp Number"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, whatsapp: e.target.value }
-      })
-    }
-  />
-
-  {/* Email */}
-  <input
-    type="email"
-    placeholder="Email ID"
-    className="w-full px-4 py-3 border border-borderColor rounded-md outline-none text-base"
-    onChange={e =>
-      setCar({
-        ...car,
-        location: { ...car.location, email: e.target.value }
-      })
-    }
-  />
-
-  {/* Final Location Box */}
-  <label className="text-base font-medium mt-2">Final Location</label>
-  <div
-    style={{
-      width: "100%",
-      padding: "16px",
-      border: "1px solid #ccc",
-      borderRadius: "8px",
-      fontSize: "16px",
-      backgroundColor: "#f9f9f9",
-      lineHeight: "1.8",
-      whiteSpace: "pre-line",
-      overflow: "auto",
-      maxHeight: "300px"
-    }}
-  >
-    <p><span style={{ color: "red", fontWeight: "bold" }}>Country:</span> {car.location?.country || ""}</p>
-    <p><span style={{ color: "blue", fontWeight: "bold" }}>State:</span> {car.location?.state || ""}</p>
-    <p><span style={{ color: "green", fontWeight: "bold" }}>District:</span> {car.location?.district || ""}</p>
-    <p><span style={{ color: "purple", fontWeight: "bold" }}>Tehsil:</span> {car.location?.tehsil || ""}</p>
-    <p><span style={{ color: "orange", fontWeight: "bold" }}>City:</span> {car.location?.city || ""}</p>
-    <p><span style={{ color: "deeppink", fontWeight: "bold" }}>Village:</span> {car.location?.village || ""}</p>
-    <p><span style={{ color: "teal", fontWeight: "bold" }}>WhatsApp:</span> {car.location?.whatsapp || ""}</p>
-    <p><span style={{ color: "black", fontWeight: "bold" }}>Email:</span> {car.location?.email || ""}</p>
-  </div>
-</div>
-
-
-        {/* Car Description */}
-         <div className='flex flex-col w-full'>
-            <label>Description</label>
-            <textarea rows={5} placeholder="e.g. A luxurious SUV with a spacious interior and a powerful engine." required className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none' value={car.description} onChange={e=> setCar({...car, description: e.target.value})}></textarea>
+        {/* Address Line 1 & 2 (Optional) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col w-full">
+            <label>Address Line 1 (optional)</label>
+            <input
+              type="text"
+              placeholder="e.g. Near Bus Stand"
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.locationLine1}
+              onChange={(e) => setCar({ ...car, locationLine1: e.target.value })}
+            />
           </div>
+          <div className="flex flex-col w-full">
+            <label>Address Line 2 (optional)</label>
+            <input
+              type="text"
+              placeholder="e.g. Opposite Petrol Pump"
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.locationLine2}
+              onChange={(e) => setCar({ ...car, locationLine2: e.target.value })}
+            />
+          </div>
+        </div>
 
-        <button className='flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer'>
+        {/* Pincode (Optional) */}
+        <div className="flex flex-col w-full">
+          <label>Pincode (optional)</label>
+          <input
+            type="text"
+            placeholder="e.g. 123456"
+            className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+            value={car.pincode}
+            onChange={(e) => setCar({ ...car, pincode: e.target.value })}
+          />
+        </div>
+
+        {/* WhatsApp & Email */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col w-full">
+            <label>WhatsApp Number</label>
+            <input
+              type="text"
+              placeholder="e.g. +91 9876543210"
+              required
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.whatsapp}
+              onChange={(e) => setCar({ ...car, whatsapp: e.target.value })}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <label>Email (optional)</label>
+            <input
+              type="email"
+              placeholder="e.g. owner@gmail.com"
+              className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+              value={car.email}
+              onChange={(e) => setCar({ ...car, email: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="flex flex-col w-full">
+          <label>Description</label>
+          <textarea
+            rows="4"
+            placeholder="Add some details about the vehicle"
+            required
+            className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
+            value={car.description}
+            onChange={(e) => setCar({ ...car, description: e.target.value })}
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button className="flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer">
           <img src={assets.tick_icon} alt="" />
-          {isLoading ? 'Listing...' : 'List Your Car'}
+          {isLoading ? 'Listing...' : 'List Your Vehicle'}
         </button>
-
-
       </form>
-
     </div>
   )
 }

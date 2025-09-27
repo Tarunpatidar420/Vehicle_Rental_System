@@ -139,6 +139,9 @@ export const changeBookingStatus = async (req, res) => {
 // =======================
 // API: Cancel Booking
 // =======================
+// =======================
+// API: Cancel Booking (Hard Delete)
+// =======================
 export const cancelBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -146,22 +149,24 @@ export const cancelBooking = async (req, res) => {
       return res.json({ success: false, message: "Booking not found" });
     }
 
+    // ✅ Sirf wahi user cancel kar sake jiska booking hai
     if (booking.user.toString() !== req.user._id.toString()) {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
-    booking.status = "cancelled";
-    await booking.save();
-
-    // ✅ Car ko wapas available kar do
+    // ✅ Car ko available kar do
     await Car.findByIdAndUpdate(booking.car, { isAvaliable: true });
 
-    res.json({ success: true, message: "Booking cancelled successfully" });
+    // ✅ Booking ko DB se hata do (hard delete)
+    await Booking.findByIdAndDelete(req.params.id);
+
+    res.json({ success: true, message: "Booking cancelled & removed permanently" });
   } catch (error) {
-    console.log(error.message);
+    console.log("Cancel Booking Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
+
 
 // =======================
 // API: Exchange Booking Vehicle

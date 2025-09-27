@@ -27,26 +27,21 @@ const MyBookings = () => {
   }, [user]);
 
   // Cancel Booking Function
- // Cancel Booking Function
-const handleCancel = async (bookingId) => {
-  if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+  const handleCancel = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
-  try {
-    const { data } = await axios.put(`/api/bookings/${bookingId}/cancel`);
-    if (data.success) {
-      toast.success("Booking cancelled successfully");
-
-      // ❌ Purana: fetchMyBookings();
-      // ✅ Naya: filter se UI se remove karo
-      setBookings((prev) => prev.filter((b) => b._id !== bookingId));
-    } else {
-      toast.error(data.message);
+    try {
+      const { data } = await axios.put(`/api/bookings/${bookingId}/cancel`);
+      if (data.success) {
+        toast.success("Booking cancelled successfully");
+        setBookings((prev) => prev.filter((b) => b._id !== bookingId));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
     }
-  } catch (error) {
-    toast.error(error.message);
-  }
-};
-
+  };
 
   // Exchange Vehicle → redirect to home page with bookingId
   const handleExchange = (bookingId) => {
@@ -67,106 +62,127 @@ const handleCancel = async (bookingId) => {
       />
 
       <div>
-        {bookings.map((booking, index) => (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.4 }}
-            key={booking._id}
-            className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
-          >
-            {/* Car Image + Info */}
-            <div className="md:col-span-1">
-              <div className="rounded-md overflow-hidden mb-3">
-                <img
-                  src={booking.car.image}
-                  alt=""
-                  className="w-full h-auto aspect-video object-cover"
-                />
-              </div>
-              <p className="text-lg font-medium mt-2">
-                {booking.car.brand} {booking.car.model}
-              </p>
-              <p className="text-gray-500">
-                {booking.car.year} • {booking.car.category} •{" "}
-                {booking.car.location}
-              </p>
-            </div>
-
-            {/* Booking Info */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2">
-                <p className="px-3 py-1.5 bg-light rounded">
-                  Booking #{index + 1}
+        {bookings.length === 0 ? (
+          <p className="text-center text-gray-500 mt-10">No bookings found.</p>
+        ) : (
+          bookings.map((booking, index) => (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              key={booking._id}
+              className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
+            >
+              {/* Car Image + Info */}
+              <div className="md:col-span-1">
+                <div className="rounded-md overflow-hidden mb-3">
+                  <img
+                    src={booking.car?.image || assets.no_image}
+                    alt="car"
+                    className="w-full h-auto aspect-video object-cover"
+                  />
+                </div>
+                <p className="text-lg font-medium mt-2">
+                  {booking.car?.brand || "Unknown"} {booking.car?.model || ""}
                 </p>
-                <p
-                  className={`px-3 py-1 text-xs rounded-full ${
-                    booking.status === "confirmed"
-                      ? "bg-green-400/15 text-green-600"
-                      : "bg-red-400/15 text-red-600"
-                  }`}
-                >
-                  {booking.status}
+
+                <p className="text-gray-500">
+                  {booking.car?.year || "--"} • {booking.car?.category || "--"} <br />
+                  {booking.car?.location?.line1 || ""},{" "}
+                  {booking.car?.location?.line2 || ""},{" "}
+                  {booking.car?.location?.pincode || ""}
                 </p>
               </div>
 
-              <div className="flex items-start gap-2 mt-3">
-                <img
-                  src={assets.calendar_icon_colored}
-                  alt=""
-                  className="w-4 h-4 mt-1"
-                />
-                <div>
-                  <p className="text-gray-500">Rental Period</p>
+              {/* Booking Info */}
+              <div className="md:col-span-2">
+                <div className="flex items-center gap-2">
+                  <p className="px-3 py-1.5 bg-light rounded">
+                    Booking #{index + 1}
+                  </p>
+                  <p
+                    className={`px-3 py-1 text-xs rounded-full ${
+                      booking.status === "confirmed"
+                        ? "bg-green-400/15 text-green-600"
+                        : "bg-red-400/15 text-red-600"
+                    }`}
+                  >
+                    {booking.status || "pending"}
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-2 mt-3">
+                  <img
+                    src={assets.calendar_icon_colored}
+                    alt="calendar"
+                    className="w-4 h-4 mt-1"
+                  />
+                  <div>
+                    <p className="text-gray-500">Rental Period</p>
+                    <p>
+                      {booking.pickupDate
+                        ? booking.pickupDate.split("T")[0]
+                        : "--"}{" "}
+                      To{" "}
+                      {booking.returnDate
+                        ? booking.returnDate.split("T")[0]
+                        : "--"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 mt-3">
+                  <img
+                    src={assets.location_icon_colored}
+                    alt="location"
+                    className="w-4 h-4 mt-1"
+                  />
+                  <div>
+                    <p className="text-gray-500">Pick-up Location</p>
+                    <p>
+                      {booking.car?.location?.line1 || ""},{" "}
+                      {booking.car?.location?.line2 || ""},{" "}
+                      {booking.car?.location?.pincode || ""}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price + Actions */}
+              <div className="md:col-span-1 flex flex-col justify-between gap-6">
+                <div className="flex flex-col gap-2 mt-4">
+                  <button
+                    onClick={() => handleExchange(booking._id)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  >
+                    Exchange Vehicle
+                  </button>
+
+                  <button
+                    onClick={() => handleCancel(booking._id)}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                  >
+                    Cancel Booking
+                  </button>
+                </div>
+
+                <div className="text-sm text-gray-500 text-right">
+                  <p>Total Price</p>
+                  <h1 className="text-2xl font-semibold text-primary">
+                    {currency}
+                    {booking.price || "0"}
+                  </h1>
                   <p>
-                    {booking.pickupDate.split("T")[0]} To{" "}
-                    {booking.returnDate.split("T")[0]}
+                    Booked on{" "}
+                    {booking.createdAt
+                      ? booking.createdAt.split("T")[0]
+                      : "--"}
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-start gap-2 mt-3">
-                <img
-                  src={assets.location_icon_colored}
-                  alt=""
-                  className="w-4 h-4 mt-1"
-                />
-                <div>
-                  <p className="text-gray-500">Pick-up Location</p>
-                  <p>{booking.car.location}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Price + Actions */}
-            <div className="md:col-span-1 flex flex-col justify-between gap-6">
-              <div className="flex flex-col gap-2 mt-4">
-                <button
-                  onClick={() => handleExchange(booking._id)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                >
-                  Exchange Vehicle
-                </button>
-
-                <button
-                  onClick={() => handleCancel(booking._id)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                >
-                  Cancel Booking
-                </button>
-              </div>
-
-              <div className="text-sm text-gray-500 text-right">
-                <p>Total Price</p>
-                <h1 className="text-2xl font-semibold text-primary">
-                  {currency}
-                  {booking.price}
-                </h1>
-                <p>Booked on {booking.createdAt.split("T")[0]}</p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))
+        )}
       </div>
     </motion.div>
   );

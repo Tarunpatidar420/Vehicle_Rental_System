@@ -8,13 +8,11 @@ import toast from 'react-hot-toast'
 import { motion } from 'motion/react'
 
 // Swiper import
-// Swiper import
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation } from 'swiper/modules'   // ✅ correct for v12
+import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 
-// Swiper import
 const Cars = () => {
   const [searchParams] = useSearchParams()
   const pickupLocation = searchParams.get('pickupLocation')
@@ -40,18 +38,22 @@ const Cars = () => {
   const applyFilter = () => {
     let filtered = cars
 
+    // ✅ Category Filter (array support)
     if (selectedCategory !== "All") {
       filtered = filtered.filter(car =>
-        car.category.toLowerCase() === selectedCategory.toLowerCase()
+        car.categories?.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase())
       )
     }
 
+    // ✅ Search Filter
     if (input !== '') {
       filtered = filtered.filter((car) => {
-        return car.brand.toLowerCase().includes(input.toLowerCase())
-          || car.model.toLowerCase().includes(input.toLowerCase())
-          || car.category.toLowerCase().includes(input.toLowerCase())
-          || car.transmission.toLowerCase().includes(input.toLowerCase())
+        return (
+          car.brand.toLowerCase().includes(input.toLowerCase()) ||
+          car.model.toLowerCase().includes(input.toLowerCase()) ||
+          car.categories?.some(cat => cat.toLowerCase().includes(input.toLowerCase())) ||
+          car.transmission.toLowerCase().includes(input.toLowerCase())
+        )
       })
     }
 
@@ -59,7 +61,11 @@ const Cars = () => {
   }
 
   const searchCarAvailablity = async () => {
-    const { data } = await axios.post('/api/bookings/check-availability', { location: pickupLocation, pickupDate, returnDate })
+    const { data } = await axios.post('/api/bookings/check-availability', {
+      location: pickupLocation,
+      pickupDate,
+      returnDate
+    })
     if (data.success) {
       setFilteredCars(data.availableCars)
       if (data.availableCars.length === 0) {
@@ -104,44 +110,40 @@ const Cars = () => {
             }}
           >
             {categories.map((cat, index) => (
-              
               <SwiperSlide key={index}>
-  <motion.div
-    whileTap={{ scale: 0.95 }}
-    whileHover={{ scale: 1.08 }}
-    onClick={() => setSelectedCategory(cat.name)}
-    className={`flex flex-col items-center p-4 rounded-xl text-center cursor-pointer transition-all duration-300 ease-in-out 
-      ${
-        selectedCategory === cat.name
-          ? "bg-yellow-200 text-yellow-900 shadow-xl ring-2 ring-yellow-400"
-          : "bg-white shadow-md hover:shadow-lg"
-      }`}
-  >
-    <motion.img
-      src={cat.img}
-      alt={cat.name}
-      initial={{ opacity: 0.7 }}
-      animate={{
-        opacity: 1,
-        rotate: selectedCategory === cat.name ? [0, 5, -5, 0] : 0,
-      }}
-      transition={{ duration: 0.5 }}
-      className={`h-16 w-16 object-contain ${
-        selectedCategory === cat.name ? "brightness-90" : ""
-      }`}
-    />
-    <p
-      className={`mt-2 font-medium transition ${
-        selectedCategory === cat.name ? "text-yellow-800 font-semibold" : ""
-      }`}
-    >
-      {cat.name}
-    </p>
-  </motion.div>
-</SwiperSlide>
-
-
-
+                <motion.div
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`flex flex-col items-center p-4 rounded-xl text-center cursor-pointer transition-all duration-300 ease-in-out 
+                    ${
+                      selectedCategory === cat.name
+                        ? "bg-yellow-200 text-yellow-900 shadow-xl ring-2 ring-yellow-400"
+                        : "bg-white shadow-md hover:shadow-lg"
+                    }`}
+                >
+                  <motion.img
+                    src={cat.img}
+                    alt={cat.name}
+                    initial={{ opacity: 0.7 }}
+                    animate={{
+                      opacity: 1,
+                      rotate: selectedCategory === cat.name ? [0, 5, -5, 0] : 0,
+                    }}
+                    transition={{ duration: 0.5 }}
+                    className={`h-16 w-16 object-contain ${
+                      selectedCategory === cat.name ? "brightness-90" : ""
+                    }`}
+                  />
+                  <p
+                    className={`mt-2 font-medium transition ${
+                      selectedCategory === cat.name ? "text-yellow-800 font-semibold" : ""
+                    }`}
+                  >
+                    {cat.name}
+                  </p>
+                </motion.div>
+              </SwiperSlide>
             ))}
           </Swiper>
         </div>
