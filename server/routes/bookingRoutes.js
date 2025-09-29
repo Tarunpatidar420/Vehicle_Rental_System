@@ -5,7 +5,7 @@ import {
   createBooking, 
   getOwnerBookings, 
   getUserBookings,
-  cancelBooking,
+  cancelBooking,   // 👈 hard delete wala cancel
   exchangeBookingVehicle
 } from "../controllers/bookingController.js";
 import { protect } from "../middleware/auth.js";  // ✅ sirf protect use kar
@@ -27,8 +27,11 @@ bookingRouter.get("/owner", protect, getOwnerBookings);
 // ✅ Status change (owner only)
 bookingRouter.post("/change-status", protect, changeBookingStatus);
 
-// ✅ Cancel booking (login required)
-bookingRouter.put("/:id/cancel", protect, cancelBooking);
+// ❌ OLD (PUT se cancel hota tha → status change karta tha)
+// bookingRouter.put("/:id/cancel", protect, cancelBooking);
+
+// ✅ NEW (DELETE request se booking hard delete hogi)
+bookingRouter.delete("/:id/cancel", protect, cancelBooking);
 
 // ✅ Exchange booking (login required)
 bookingRouter.put("/:id/exchange", protect, exchangeBookingVehicle);

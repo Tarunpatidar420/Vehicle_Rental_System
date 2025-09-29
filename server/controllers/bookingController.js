@@ -216,6 +216,9 @@ export const changeBookingStatus = async (req, res) => {
 // =======================
 // API: Cancel Booking
 // =======================
+// =======================
+// API: Cancel Booking (HARD DELETE)
+// =======================
 export const cancelBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -223,26 +226,22 @@ export const cancelBooking = async (req, res) => {
       return res.json({ success: false, message: "Booking not found" });
     }
 
+    // ✅ only booking owner (user) can delete
     if (booking.user && booking.user.toString() !== req.user._id.toString()) {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
-    const cancelledBooking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      { status: "cancelled" },
-      { new: true }
-    )
-      .populate(carPopulate)
-      .populate(userPopulate);
+    // ✅ delete booking from DB
+    await Booking.deleteOne({ _id: req.params.id });
 
-    await Car.findByIdAndUpdate(cancelledBooking.car._id, {
+    // ✅ availableCount +1 (optional)
+    await Car.findByIdAndUpdate(booking.car, {
       $inc: { availableCount: 1 },
     });
 
     res.json({
       success: true,
-      message: "Booking cancelled successfully",
-      booking: cancelledBooking,
+      message: "Booking deleted successfully",
     });
   } catch (error) {
     console.error("Cancel Booking Error:", error.message);

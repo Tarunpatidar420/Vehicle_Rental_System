@@ -37,26 +37,30 @@ const MyBookings = () => {
   }, [token]);
 
   // ✅ Cancel Booking
-  const handleCancel = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+  // ✅ Cancel Booking (Hard Delete)
+const handleCancel = async (bookingId) => {
+  if (!window.confirm("Are you sure you want to delete this booking?")) return;
 
-    try {
-      const { data } = await axios.put(
-        `/api/bookings/${bookingId}/cancel`, // ✅ backticks fixed
-        {},
-        { headers: { Authorization: `Bearer ${token}` } } // ✅ backticks fixed
-      );
+  // ⏳ UI se turant hata do
+  setBookings((prev) => prev.filter((b) => b._id !== bookingId));
 
-      if (data.success) {
-        toast.success("Booking cancelled successfully");
-        setBookings((prev) => prev.filter((b) => b._id !== bookingId));
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
+  try {
+    const { data } = await axios.delete(
+      `/api/bookings/${bookingId}/cancel`,  // 👈 delete request
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (data.success) {
+      toast.success("Booking deleted successfully");
+    } else {
+      toast.error(data.message || "Failed to delete booking");
+      fetchBookings(); // rollback in case of error
     }
-  };
+  } catch (error) {
+    toast.error(error.message);
+    fetchBookings();
+  }
+};
 
   // ✅ Exchange Vehicle
   const handleExchange = (bookingId) => {
