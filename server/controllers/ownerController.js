@@ -151,6 +151,65 @@ export const getDashboardData = async (req, res) => {
   }
 };
 
+
+// ✅ API to Update Car (full info)
+export const updateCar = async (req, res) => {
+  try {
+    const { id } = req.params; // carId from URL
+    const { _id } = req.user;
+
+    let updateData = JSON.parse(req.body.carData || "{}");
+
+    // ✅ Agar nayi images bheji gayi hain
+    if (req.files && req.files.length > 0) {
+      let optimizedImageUrls = [];
+      for (const file of req.files) {
+        const fileBuffer = fs.readFileSync(file.path);
+        const response = await imagekit.upload({
+          file: fileBuffer,
+          fileName: file.originalname,
+          folder: "/cars",
+        });
+
+        const optimizedImageUrl = imagekit.url({
+          path: response.filePath,
+          transformation: [
+            { width: "1280" },
+            { quality: "auto" },
+            { format: "webp" },
+          ],
+        });
+
+        optimizedImageUrls.push(optimizedImageUrl);
+      }
+      updateData.images = optimizedImageUrls;
+    }
+
+    // ✅ Verify owner
+    const car = await Car.findById(id);
+    if (!car) return res.status(404).json({ success: false, message: "Car not found" });
+    if (car.owner.toString() !== _id.toString()) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    // ✅ Update all fields
+    const updatedCar = await Car.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true }
+    );
+
+    res.json({ success: true, message: "Car Updated Successfully", car: updatedCar });
+  } catch (error) {
+    console.log("Update Car Error:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+
+
 // ✅ API to Update User Image
 export const updateUserImage = async (req, res) => {
   try {
