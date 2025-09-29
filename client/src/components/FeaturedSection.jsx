@@ -11,12 +11,13 @@ const FeaturedSection = () => {
   const { cars } = useAppContext()
   const location = useLocation()
 
-  // 👇 URL se ?exchangeBookingId= le rahe hain
   const queryParams = new URLSearchParams(location.search)
   const exchangeBookingId = queryParams.get("exchangeBookingId")
 
-  // ✅ sirf available cars
-  const availableCars = cars.filter(car => car.isAvailable)
+  // ✅ Sirf available cars filter karo
+  const availableCars = cars
+
+  console.log("Available cars:", availableCars)
 
   return (
     <motion.div
@@ -25,16 +26,10 @@ const FeaturedSection = () => {
       transition={{ duration: 1, ease: "easeOut" }}
       className='flex flex-col items-center py-24 px-6 md:px-16 lg:px-24 xl:px-32'
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.5 }}
-      >
-        <Title
-          title='Featured Vehicles'
-          subTitle='Explore our selection of premium vehicles available for your next adventure.'
-        />
-      </motion.div>
+      <Title
+        title='Featured Vehicles'
+        subTitle='Explore our selection of premium vehicles available for your next adventure.'
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 100 }}
@@ -49,7 +44,6 @@ const FeaturedSection = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            {/* 👇 Yahan exchangeBookingId pass kar diya */}
             <CarCard car={car} exchangeBookingId={exchangeBookingId} />
           </motion.div>
         ))}

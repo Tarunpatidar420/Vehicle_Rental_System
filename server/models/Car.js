@@ -25,7 +25,6 @@ const carSchema = new mongoose.Schema(
     transmission: { type: String, required: true, trim: true },
     pricePerDay: { type: Number, required: true, min: 1 },
 
-    // ✅ Nested Location
     location: {
       line1: { type: String, default: "" },
       line2: { type: String, default: "" },
@@ -45,6 +44,12 @@ const carSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// ✅ Hook: har save/update par isAvailable ko auto-set karo
+carSchema.pre("save", function (next) {
+  this.isAvailable = this.availableCount > 0;
+  next();
+});
 
 const Car = mongoose.models.Car || mongoose.model("Car", carSchema);
 

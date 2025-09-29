@@ -29,17 +29,22 @@ export const getAvailableVehicles = async (req, res) => {
     if (returnDate) returnDate = new Date(returnDate);
 
     // Sirf active cars (jo owner ne available rakhe hain)
-    let cars = await Car.find({ isAvailable: true });
+    
+// Sirf active cars (jo owner ne available rakhe hain)
+let cars = await Car.find({ isAvailable: true });
 
-    if (pickupDate && returnDate) {
-      // Date diya gaya hai to check availability with count
-      const availablePromises = cars.map(async (car) => {
-        const isAvailable = await checkAvailability(car, pickupDate, returnDate);
-        return isAvailable ? car : null;
-      });
+// ✅ Always check availability if car has bookings
+const availablePromises = cars.map(async (car) => {
+  // Agar user ne dates diye hain to un dates ke hisaab se check karo
+  // Warna aaj ki date ko reference lelo
+  const start = pickupDate || new Date();
+  const end = returnDate || new Date(Date.now() + 24 * 60 * 60 * 1000); // default 1 din
+  const isAvailable = await checkAvailability(car, start, end);
+  return isAvailable ? car : null;
+});
 
-      cars = (await Promise.all(availablePromises)).filter((c) => c !== null);
-    }
+cars = (await Promise.all(availablePromises)).filter((c) => c !== null);
+  
 
     res.json({ success: true, cars });
   } catch (error) {

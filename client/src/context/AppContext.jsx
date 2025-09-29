@@ -50,15 +50,24 @@ export const AppProvider = ({ children }) => {
   };
 
   // ✅ Fetch public cars
-  const fetchCars = async () => {
-    try {
-      const { data } = await axios.get("/api/user/cars");
-      if (data?.success) setCars(data.cars);
-      else toast.error(data.message);
-    } catch (error) {
-      toast.error(error.message);
+  // ✅ Fetch only available cars
+// ✅ Fetch public cars
+// ✅ Fetch public cars (sirf available filter karo)
+// ✅ Fetch available cars from backend
+const fetchCars = async () => {
+  try {
+    const { data } = await axios.get("/api/vehicles/available");  // ✅ new endpoint
+    if (data?.success) {
+      setCars(data.cars);  // already backend se sirf available cars aa rahi hain
+    } else {
+      toast.error(data.message);
     }
-  };
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+  }
+};
+
+
 
   // ✅ Logout
   const logout = () => {
