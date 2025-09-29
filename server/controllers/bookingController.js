@@ -60,11 +60,11 @@ export const checkAvailabilityOfCar = async (req, res) => {
 };
 
 // =======================
-// API: Create Booking
+// API: Create Booking ✅ FIXED
 // =======================
 export const createBooking = async (req, res) => {
   try {
-    const { _id } = req.user || {}; // guest ke liye null hoga
+    const userId = req.user ? req.user._id : null; // ✅ safe handling
     const {
       car,
       pickupDate,
@@ -100,7 +100,7 @@ export const createBooking = async (req, res) => {
     const booking = await Booking.create({
       car,
       owner: carData.owner,
-      user: _id || null, // ✅ guest = null
+      user: userId, // ✅ ab correct user save hoga
       pickupDate,
       returnDate,
       price,
@@ -128,41 +128,33 @@ export const createBooking = async (req, res) => {
 // =======================
 // API: User Bookings (Guest + Logged-in)
 // =======================
+// =======================
+// API: User + Owner Bookings (Logged-in only)
+// =======================
 export const getUserBookings = async (req, res) => {
   try {
-    let query = {};
-
-    // ✅ Logged-in user
-    if (req.user?._id) {
-      query.user = req.user._id;
+    if (!req.user) {
+      return res.json({ success: false, bookings: [] });
     }
 
-    // ✅ Guest user (search by email/whatsapp if provided)
-    if (req.query.email) {
-      query.email = req.query.email;
-    }
-    if (req.query.whatsapp) {
-      query.whatsapp = req.query.whatsapp;
-    }
-
-    if (Object.keys(query).length === 0) {
-      return res.json({
-        success: false,
-        message: "User identifier (id/email/whatsapp) is required",
-      });
-    }
-
-    const bookings = await Booking.find(query)
+    // ✅ dono conditions laga diye (user bhi aur owner bhi)
+    const bookings = await Booking.find({
+      $or: [
+        { user: req.user._id },
+        { owner: req.user._id }
+      ]
+    })
       .populate(carPopulate)
       .populate(userPopulate)
       .sort({ createdAt: -1 });
 
     res.json({ success: true, bookings });
   } catch (error) {
-    console.error("User Bookings Error:", error.message);
-    res.json({ success: false, message: error.message });
+    console.error("Error fetching bookings:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 // =======================
 // API: Owner Bookings

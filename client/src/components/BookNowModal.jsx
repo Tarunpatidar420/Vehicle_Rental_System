@@ -18,40 +18,45 @@ const BookNowModal = ({ isOpen, onClose, car, pickupDate, returnDate }) => {
   };
 
   // Booking confirm
-  const handleConfirmBooking = async () => {
-    if (!pickupDate || !returnDate) {
-      alert("Please select pickup and return date first!");
-      return;
-    }
+  // Booking confirm
+const handleConfirmBooking = async () => {
+  if (!pickupDate || !returnDate) {
+    alert("Please select pickup and return date first!");
+    return;
+  }
 
-    if (!car?._id) {
-      alert("Car details not found!");
-      return;
-    }
+  if (!car?._id) {
+    alert("Car details not found!");
+    return;
+  }
 
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/bookings/create",
-        {
-          ...formData,
-          car: car._id,
-          pickupDate,
-          returnDate,
-        }
-        // ❌ withCredentials hata diya kyunki bina login ke booking allow hai
-      );
-
-      if (res.data.success) {
-        alert("Booking confirmed!");
-        onClose();
-      } else {
-        alert(res.data.message || "Booking failed");
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/bookings/create",
+      {
+        ...formData,
+        car: car._id,
+        pickupDate,
+        returnDate,
       }
-    } catch (err) {
-      console.error("Booking error:", err);
-      alert("Error while creating booking");
+    );
+
+    if (res.data.success) {
+      // ✅ Save guest info in localStorage
+      localStorage.setItem("guestEmail", formData.email);
+      localStorage.setItem("guestWhatsapp", formData.whatsapp);
+
+      alert("Booking confirmed!");
+      onClose();
+    } else {
+      alert(res.data.message || "Booking failed");
     }
-  };
+  } catch (err) {
+    console.error("Booking error:", err);
+    alert("Error while creating booking");
+  }
+};
+
 
   if (!isOpen || !car) return null;
 

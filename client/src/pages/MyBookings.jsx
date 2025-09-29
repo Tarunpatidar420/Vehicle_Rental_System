@@ -6,33 +6,47 @@ import toast from "react-hot-toast";
 import { motion } from "motion/react";
 
 const MyBookings = () => {
-  const { axios, user, currency } = useAppContext();
+  const { axios, token, currency } = useAppContext();
   const [bookings, setBookings] = useState([]);
 
-  // Fetch Bookings
-  const fetchMyBookings = async () => {
+  // ✅ Fetch login user's bookings
+  const fetchBookings = async () => {
+    if (!token) {
+      toast.error("Please login to view your bookings");
+      return;
+    }
+
     try {
-      const { data } = await axios.get("/api/bookings/user");
-      if (data.success) {
-        setBookings(data.bookings);
+      const res = await axios.get("/api/bookings/user", {
+        headers: { Authorization: `Bearer ${token}` }, // ✅ backticks fixed
+      });
+
+      if (res.data.success) {
+        setBookings(res.data.bookings);
       } else {
-        toast.error(data.message);
+        toast.error(res.data.message || "Failed to fetch bookings");
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Error fetching bookings:", error);
+      toast.error("Failed to fetch bookings");
     }
   };
 
   useEffect(() => {
-    user && fetchMyBookings();
-  }, [user]);
+    fetchBookings();
+  }, [token]);
 
-  // Cancel Booking
+  // ✅ Cancel Booking
   const handleCancel = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
     try {
-      const { data } = await axios.put(`/api/bookings/${bookingId}/cancel`);
+      const { data } = await axios.put(
+        `/api/bookings/${bookingId}/cancel`, // ✅ backticks fixed
+        {},
+        { headers: { Authorization: `Bearer ${token}` } } // ✅ backticks fixed
+      );
+
       if (data.success) {
         toast.success("Booking cancelled successfully");
         setBookings((prev) => prev.filter((b) => b._id !== bookingId));
@@ -44,9 +58,9 @@ const MyBookings = () => {
     }
   };
 
-  // Exchange Vehicle
+  // ✅ Exchange Vehicle
   const handleExchange = (bookingId) => {
-    window.location.href = `/?exchangeBookingId=${bookingId}`;
+    window.location.href = `/?exchangeBookingId=${bookingId}`; // ✅ backticks fixed
   };
 
   return (
@@ -74,7 +88,7 @@ const MyBookings = () => {
               transition={{ delay: index * 0.1, duration: 0.4 }}
               className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
             >
-              {/* Car Image + Info */}
+              {/* Car Info */}
               <div className="md:col-span-1">
                 <div className="rounded-md overflow-hidden mb-3">
                   <img
@@ -86,54 +100,11 @@ const MyBookings = () => {
                 <p className="text-lg font-medium mt-2">
                   {booking.car?.brand || "Unknown"} {booking.car?.model || ""}
                 </p>
-
                 <p className="text-gray-500">
                   Year: {booking.car?.year || "--"} • Category:{" "}
                   {booking.car?.categories?.join(", ") || "--"} • Seats:{" "}
                   {booking.car?.seating_capacity || "--"}
                 </p>
-                <p className="text-gray-500">
-                  Fuel: {booking.car?.fuel_type || "--"} • Transmission:{" "}
-                  {booking.car?.transmission || "--"}
-                </p>
-
-                {/* ✅ Fixed Location */}
-                <p className="text-gray-500 mt-2">
-                  📍 {booking.car?.locationLine1 || ""}
-                  {booking.car?.locationLine2
-                    ? `, ${booking.car?.locationLine2}`
-                    : ""}
-                  {booking.car?.pincode ? ` - ${booking.car?.pincode}` : ""}
-                </p>
-
-                {/* ✅ Extra Car Details */}
-                <div className="mt-3 space-y-1 text-gray-600 text-sm">
-                  <p>
-                    <span className="font-medium">Price/Day:</span>{" "}
-                    {currency}
-                    {booking.car?.pricePerDay || "--"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Available Units:</span>{" "}
-                    {booking.car?.availableCount || 0}
-                  </p>
-                  <p>
-                    <span className="font-medium">Status:</span>{" "}
-                    {booking.car?.isAvailable ? "Available" : "Unavailable"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Description:</span>{" "}
-                    {booking.car?.description || "No description"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Contact:</span> 📱{" "}
-                    {booking.car?.whatsapp || "--"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Email:</span> ✉️{" "}
-                    {booking.car?.email || "--"}
-                  </p>
-                </div>
               </div>
 
               {/* Booking Info */}

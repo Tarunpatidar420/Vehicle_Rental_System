@@ -8,29 +8,29 @@ import {
   cancelBooking,
   exchangeBookingVehicle
 } from "../controllers/bookingController.js";
-import { protect } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";  // ✅ sirf protect use kar
 
 const bookingRouter = express.Router();
 
-// ✅ Availability check
-bookingRouter.post('/check-availability', checkAvailabilityOfCar);
+// ✅ Availability check (sab ke liye)
+bookingRouter.post("/check-availability", checkAvailabilityOfCar);
 
-// ✅ Booking create (guest + logged in both allowed)
-bookingRouter.post('/create', createBooking);
+// ✅ Booking create (guest + logged in dono allowed)
+bookingRouter.post("/create", createBooking);
 
-// ✅ User bookings (login required)  --> /api/bookings/user
-bookingRouter.get('/user', protect, getUserBookings);
+// ✅ User bookings (sirf login hone par)
+bookingRouter.get("/user", protect, getUserBookings);
 
-// ✅ Owner bookings (login required, role=owner) --> /api/bookings/owner
-bookingRouter.get('/owner', protect, getOwnerBookings);
+// ✅ Owner bookings (login required + owner role)
+bookingRouter.get("/owner", protect, getOwnerBookings);
 
-// ✅ Status change (owner only) --> /api/bookings/change-status
-bookingRouter.post('/change-status', protect, changeBookingStatus);
+// ✅ Status change (owner only)
+bookingRouter.post("/change-status", protect, changeBookingStatus);
 
-// ✅ Cancel booking --> /api/bookings/:id/cancel
-bookingRouter.put('/:id/cancel', protect, cancelBooking);
+// ✅ Cancel booking (login required)
+bookingRouter.put("/:id/cancel", protect, cancelBooking);
 
-// ✅ Exchange booking --> /api/bookings/:id/exchange
-bookingRouter.put('/:id/exchange', protect, exchangeBookingVehicle);
+// ✅ Exchange booking (login required)
+bookingRouter.put("/:id/exchange", protect, exchangeBookingVehicle);
 
 export default bookingRouter;
