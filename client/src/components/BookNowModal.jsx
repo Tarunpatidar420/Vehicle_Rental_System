@@ -1,153 +1,160 @@
-// src/components/BookNowModal.jsx
 import React, { useState } from "react";
+import axios from "axios";
 
-const BookNowModal = ({ car, onClose, onSubmit }) => {
+const BookNowModal = ({ isOpen, onClose, car, pickupDate, returnDate }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     whatsapp: "",
-    purpose: "",
-    paymentMethod: "offline",
-    otherPurpose: "",
+    address: "",
+    pincode: "",
+    vehicleUse: "", // ✅ backend ke sath sync
+    paymentMethod: "offline", // ✅ lowercase backend ke sath match karega
   });
 
+  // Input handle
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // purpose check
-    const finalData = {
-      ...formData,
-      purpose: formData.purpose === "other" ? formData.otherPurpose : formData.purpose,
-    };
-    onSubmit(finalData);
+  // Booking confirm
+  const handleConfirmBooking = async () => {
+    if (!pickupDate || !returnDate) {
+      alert("Please select pickup and return date first!");
+      return;
+    }
+
+    if (!car?._id) {
+      alert("Car details not found!");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/bookings/create",
+        {
+          ...formData,
+          car: car._id,
+          pickupDate,
+          returnDate,
+        }
+        // ❌ withCredentials hata diya kyunki bina login ke booking allow hai
+      );
+
+      if (res.data.success) {
+        alert("Booking confirmed!");
+        onClose();
+      } else {
+        alert(res.data.message || "Booking failed");
+      }
+    } catch (err) {
+      console.error("Booking error:", err);
+      alert("Error while creating booking");
+    }
   };
 
+  if (!isOpen || !car) return null;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Book {car.brand} {car.model}</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+        <h2 className="text-xl font-bold mb-4">
+          Booking for {car?.brand || "Unknown"} {car?.model || ""}
+        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Your Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded"
-          />
+        {/* Full Name */}
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          className="border p-2 w-full mb-2"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Your Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded"
-          />
+        {/* Email */}
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          className="border p-2 w-full mb-2"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
 
-          <input
-            type="text"
-            name="whatsapp"
-            placeholder="WhatsApp Number"
-            value={formData.whatsapp}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded"
-          />
+        {/* Whatsapp Number */}
+        <input
+          type="text"
+          name="whatsapp"
+          placeholder="Whatsapp Number"
+          className="border p-2 w-full mb-2"
+          value={formData.whatsapp}
+          onChange={handleChange}
+          required
+        />
 
-          {/* Purpose */}
-          <select
-            name="purpose"
-            value={formData.purpose}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded"
+        {/* Address */}
+        <textarea
+          name="address"
+          placeholder="Address"
+          className="border p-2 w-full mb-2"
+          value={formData.address}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Pincode */}
+        <input
+          type="text"
+          name="pincode"
+          placeholder="Pincode"
+          className="border p-2 w-full mb-2"
+          value={formData.pincode}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Purpose of booking */}
+        <input
+          type="text"
+          name="vehicleUse"
+          placeholder="Purpose of booking"
+          className="border p-2 w-full mb-2"
+          value={formData.vehicleUse}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Payment Method */}
+        <select
+          name="paymentMethod"
+          className="border p-2 w-full mb-4"
+          value={formData.paymentMethod}
+          onChange={handleChange}
+        >
+          <option value="offline">Offline</option>
+          <option value="googlepay">Google Pay</option>
+          <option value="paytm">Paytm</option>
+          <option value="card">Debit/Credit Card</option>
+        </select>
+
+        {/* Buttons */}
+        <div className="flex justify-between">
+          <button
+            className="bg-gray-400 text-white px-4 py-2 rounded"
+            onClick={onClose}
           >
-            <option value="">Select Purpose</option>
-            <option value="farming">Farming</option>
-            <option value="transport">Transport</option>
-            <option value="travel">Travel</option>
-            <option value="other">Other</option>
-          </select>
-
-          {formData.purpose === "other" && (
-            <input
-              type="text"
-              name="otherPurpose"
-              placeholder="Enter your purpose"
-              value={formData.otherPurpose}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
-            />
-          )}
-
-          {/* Payment */}
-          <label className="block font-medium">Payment Method</label>
-          <div className="flex gap-4">
-            <label>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="offline"
-                checked={formData.paymentMethod === "offline"}
-                onChange={handleChange}
-              />{" "}
-              Offline
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="gpay"
-                checked={formData.paymentMethod === "gpay"}
-                onChange={handleChange}
-              />{" "}
-              Google Pay
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="paytm"
-                checked={formData.paymentMethod === "paytm"}
-                onChange={handleChange}
-              />{" "}
-              Paytm
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="card"
-                checked={formData.paymentMethod === "card"}
-                onChange={handleChange}
-              />{" "}
-              Card
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-white rounded-lg"
-            >
-              Confirm Booking
-            </button>
-          </div>
-        </form>
+            Cancel
+          </button>
+          <button
+            className="bg-green-600 text-white px-4 py-2 rounded"
+            onClick={handleConfirmBooking}
+          >
+            Confirm Booking
+          </button>
+        </div>
       </div>
     </div>
   );

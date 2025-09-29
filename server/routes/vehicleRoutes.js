@@ -1,6 +1,6 @@
 import express from "express";
 import { getAvailableVehicles } from "../controllers/vehicleController.js";
-import Car from "../models/Car.js";   // ✅ Vehicle.js ❌  → Car.js ✅
+import Car from "../models/Car.js";
 
 const router = express.Router();
 
@@ -22,4 +22,4 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-export default router;
+export default router;   // ✅ Correct export

@@ -4,7 +4,7 @@ import Car from "../models/Car.js";
 import User from "../models/User.js";
 import fs from "fs";
 
-// API to Change Role of User
+// ✅ API to Change Role of User to Owner
 export const changeRoleToOwner = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -16,8 +16,7 @@ export const changeRoleToOwner = async (req, res) => {
   }
 };
 
-// API to Add Car (with optional multiple images)
-// API to Add Car (with optional multiple images)
+// ✅ API to Add Car (with optional multiple images)
 export const addCar = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -47,12 +46,12 @@ export const addCar = async (req, res) => {
       }
     }
 
-    // ✅ Car create with default availability true
+    // Car create with default availability true
     const newCar = await Car.create({
       ...car,
       owner: _id,
-      images: optimizedImageUrls, // [] if no images uploaded
-      isAvailable: true           // Force available when adding
+      images: optimizedImageUrls,
+      isAvailable: true
     });
 
     res.json({ success: true, message: "Car Added", car: newCar });
@@ -62,7 +61,7 @@ export const addCar = async (req, res) => {
   }
 };
 
-// API to List Owner Cars
+// ✅ API to List Owner Cars
 export const getOwnerCars = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -74,7 +73,7 @@ export const getOwnerCars = async (req, res) => {
   }
 };
 
-// API to Toggle Car Availability
+// ✅ API to Toggle Car Availability
 export const toggleCarAvailability = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -82,14 +81,12 @@ export const toggleCarAvailability = async (req, res) => {
     const car = await Car.findById(carId);
 
     if (!car) return res.json({ success: false, message: "Car not found" });
-
     if (car.owner.toString() !== _id.toString()) {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
     car.isAvailable = !car.isAvailable;
     await car.save();
-
     res.json({ success: true, message: "Availability Toggled" });
   } catch (error) {
     console.log(error.message);
@@ -97,8 +94,7 @@ export const toggleCarAvailability = async (req, res) => {
   }
 };
 
-// API to Delete a Car (hard Delete)
-// API to Delete a Car (Hard Delete)
+// ✅ API to Delete a Car (hard Delete)
 export const deleteCar = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -106,13 +102,11 @@ export const deleteCar = async (req, res) => {
 
     const car = await Car.findById(carId);
     if (!car) return res.json({ success: false, message: "Car not found" });
-
     if (car.owner.toString() !== _id.toString()) {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
-    await Car.findByIdAndDelete(carId); // ✅ DB से पूरी तरह हटाओ
-
+    await Car.findByIdAndDelete(carId);
     res.json({ success: true, message: "Car Deleted Permanently" });
   } catch (error) {
     console.log(error.message);
@@ -120,12 +114,10 @@ export const deleteCar = async (req, res) => {
   }
 };
 
-
-// API to Get Dashboard Data
+// ✅ API to Get Dashboard Data
 export const getDashboardData = async (req, res) => {
   try {
     const { _id, role } = req.user;
-
     if (role !== "owner") {
       return res.json({ success: false, message: "Unauthorized" });
     }
@@ -159,7 +151,7 @@ export const getDashboardData = async (req, res) => {
   }
 };
 
-// API to Update User Image
+// ✅ API to Update User Image
 export const updateUserImage = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -186,7 +178,6 @@ export const updateUserImage = async (req, res) => {
     });
 
     await User.findByIdAndUpdate(_id, { image: optimizedImageUrl });
-
     res.json({ success: true, message: "Image Updated" });
   } catch (error) {
     console.log(error.message);

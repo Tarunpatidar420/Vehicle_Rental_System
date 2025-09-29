@@ -22,13 +22,13 @@ const ManageCars = () => {
     }
   }
 
-  // ✅ Availability toggle करना (multiple बार change कर सकते हैं)
+  // ✅ Availability toggle करना
   const toggleAvailability = async (carId) => {
     try {
       const { data } = await axios.post('/api/owner/toggle-car', { carId })
       if (data.success) {
         toast.success(data.message)
-        fetchOwnerCars()
+        fetchOwnerCars() // update list
       } else {
         toast.error(data.message)
       }
@@ -41,12 +41,12 @@ const ManageCars = () => {
   const deleteCar = async (carId) => {
     try {
       const confirm = window.confirm('Are you sure you want to delete this car?')
-      if (!confirm) return null
+      if (!confirm) return
 
       const { data } = await axios.post('/api/owner/delete-car', { carId })
       if (data.success) {
         toast.success(data.message)
-        fetchOwnerCars()
+        fetchOwnerCars() // update list
       } else {
         toast.error(data.message)
       }
@@ -55,8 +55,9 @@ const ManageCars = () => {
     }
   }
 
+  // Component mount पर fetch
   useEffect(() => {
-    isOwner && fetchOwnerCars()
+    if (isOwner) fetchOwnerCars()
   }, [isOwner])
 
   return (
@@ -80,11 +81,11 @@ const ManageCars = () => {
           <tbody>
             {cars.map((car, index) => (
               <tr key={index} className='border-t border-borderColor'>
-                {/* ✅ Car Info */}
+                {/* Car Info */}
                 <td className='p-3 flex items-center gap-3'>
                   <img
                     src={car.images?.[0] || assets.default_car}
-                    alt=""
+                    alt={car.model}
                     className="h-12 w-12 aspect-square rounded-md object-cover"
                   />
                   <div className='max-md:hidden'>
@@ -93,20 +94,20 @@ const ManageCars = () => {
                   </div>
                 </td>
 
-                {/* ✅ Category */}
+                {/* Category */}
                 <td className='p-3 max-md:hidden'>{car.categories?.[0] || "N/A"}</td>
 
-                {/* ✅ Price */}
+                {/* Price */}
                 <td className='p-3'>{currency}{car.pricePerDay}/day</td>
 
-                {/* ✅ Availability */}
+                {/* Availability */}
                 <td className='p-3 max-md:hidden'>
                   <span className={`px-3 py-1 rounded-full text-xs ${car.isAvailable ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`}>
                     {car.isAvailable ? "Available" : "Unavailable"}
                   </span>
                 </td>
 
-                {/* ✅ Actions */}
+                {/* Actions */}
                 <td className='flex items-center p-3 gap-3'>
                   <img
                     onClick={() => toggleAvailability(car._id)}

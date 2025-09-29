@@ -11,15 +11,17 @@ const AddCar = () => {
   const [car, setCar] = useState({
     brand: '',
     model: '',
-    year: 0,
-    pricePerDay: 0,
+    year: '',
+    pricePerDay: '',
     categories: [],
     transmission: '',
     fuel_type: '',
-    seating_capacity: 0,
-    locationLine1: '',
-    locationLine2: '',
-    pincode: '',
+    seating_capacity: '',
+    location: {
+      line1: '',
+      line2: '',
+      pincode: '',
+    },
     count: 1,
     description: '',
     whatsapp: '',
@@ -48,13 +50,6 @@ const AddCar = () => {
     setIsLoading(true)
 
     try {
-      const locationString = `${car.locationLine1 || ''}, ${car.locationLine2 || ''}, ${car.pincode || ''}`
-
-      const carDataToSend = {
-        ...car,
-        location: locationString,
-      }
-
       const formData = new FormData()
 
       if (images.length > 0) {
@@ -64,7 +59,7 @@ const AddCar = () => {
       formData.append(
         'carData',
         JSON.stringify({
-          ...carDataToSend,
+          ...car,
           categories: car.categories || []
         })
       )
@@ -77,15 +72,13 @@ const AddCar = () => {
         setCar({
           brand: '',
           model: '',
-          year: 0,
-          pricePerDay: 0,
+          year: '',
+          pricePerDay: '',
           categories: [],
           transmission: '',
           fuel_type: '',
-          seating_capacity: 0,
-          locationLine1: '',
-          locationLine2: '',
-          pincode: '',
+          seating_capacity: '',
+          location: { line1: '', line2: '', pincode: '' },
           count: 1,
           description: '',
           whatsapp: '',
@@ -112,7 +105,7 @@ const AddCar = () => {
         onSubmit={onSubmitHandler}
         className="flex flex-col gap-5 text-gray-500 text-sm mt-6 max-w-xl"
       >
-        {/* Vehicle Images (Optional) */}
+        {/* Vehicle Images */}
         <div className="flex flex-col gap-2 w-full">
           <label htmlFor="car-images">Upload Vehicle Images (optional, up to 4)</label>
           <input
@@ -256,7 +249,7 @@ const AddCar = () => {
           </div>
         </div>
 
-        {/* Address Line 1 & 2 (Optional) */}
+        {/* Address Line 1 & 2 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col w-full">
             <label>Address Line 1 (optional)</label>
@@ -264,8 +257,10 @@ const AddCar = () => {
               type="text"
               placeholder="e.g. Near Bus Stand"
               className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
-              value={car.locationLine1}
-              onChange={(e) => setCar({ ...car, locationLine1: e.target.value })}
+              value={car.location.line1}
+              onChange={(e) =>
+                setCar({ ...car, location: { ...car.location, line1: e.target.value } })
+              }
             />
           </div>
           <div className="flex flex-col w-full">
@@ -274,21 +269,25 @@ const AddCar = () => {
               type="text"
               placeholder="e.g. Opposite Petrol Pump"
               className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
-              value={car.locationLine2}
-              onChange={(e) => setCar({ ...car, locationLine2: e.target.value })}
+              value={car.location.line2}
+              onChange={(e) =>
+                setCar({ ...car, location: { ...car.location, line2: e.target.value } })
+              }
             />
           </div>
         </div>
 
-        {/* Pincode (Optional) */}
+        {/* Pincode */}
         <div className="flex flex-col w-full">
           <label>Pincode (optional)</label>
           <input
             type="text"
             placeholder="e.g. 123456"
             className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
-            value={car.pincode}
-            onChange={(e) => setCar({ ...car, pincode: e.target.value })}
+            value={car.location.pincode}
+            onChange={(e) =>
+              setCar({ ...car, location: { ...car.location, pincode: e.target.value } })
+            }
           />
         </div>
 
@@ -330,8 +329,11 @@ const AddCar = () => {
           />
         </div>
 
-        {/* Submit Button */}
-        <button className="flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer">
+        {/* Submit */}
+        <button
+          disabled={isLoading}
+          className="flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer"
+        >
           <img src={assets.tick_icon} alt="" />
           {isLoading ? 'Listing...' : 'List Your Vehicle'}
         </button>

@@ -11,10 +11,9 @@ const carSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1900,
-      max: new Date().getFullYear() + 1, // अगले साल तक valid
+      max: new Date().getFullYear() + 1,
     },
 
-    // ✅ Single + Multiple categories सपोर्ट
     categories: {
       type: [String],
       required: true,
@@ -26,32 +25,27 @@ const carSchema = new mongoose.Schema(
     transmission: { type: String, required: true, trim: true },
     pricePerDay: { type: Number, required: true, min: 1 },
 
-    // ✅ Location optional
+    // ✅ Nested Location
     location: {
       line1: { type: String, default: "" },
       line2: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
       pincode: { type: String, default: "" },
     },
 
     description: { type: String, default: "" },
-
-    // ✅ Vehicle Count
     availableCount: { type: Number, required: true, default: 1, min: 0 },
 
-    // ✅ Multiple Images सपोर्ट
     images: [{ type: String, default: "" }],
-
-    // ✅ Status
     isAvailable: { type: Boolean, default: true },
 
-    // ✅ Optional Contact Details
     whatsapp: { type: String, default: "" },
     email: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-// ✅ OverwriteModelError से बचने का तरीका
 const Car = mongoose.models.Car || mongoose.model("Car", carSchema);
 
 export default Car;

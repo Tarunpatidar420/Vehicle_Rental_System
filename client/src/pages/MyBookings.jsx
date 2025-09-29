@@ -9,6 +9,7 @@ const MyBookings = () => {
   const { axios, user, currency } = useAppContext();
   const [bookings, setBookings] = useState([]);
 
+  // Fetch Bookings
   const fetchMyBookings = async () => {
     try {
       const { data } = await axios.get("/api/bookings/user");
@@ -26,7 +27,7 @@ const MyBookings = () => {
     user && fetchMyBookings();
   }, [user]);
 
-  // Cancel Booking Function
+  // Cancel Booking
   const handleCancel = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
@@ -43,7 +44,7 @@ const MyBookings = () => {
     }
   };
 
-  // Exchange Vehicle → redirect to home page with bookingId
+  // Exchange Vehicle
   const handleExchange = (bookingId) => {
     window.location.href = `/?exchangeBookingId=${bookingId}`;
   };
@@ -57,7 +58,7 @@ const MyBookings = () => {
     >
       <Title
         title="My Bookings"
-        subTitle="View and manage your all car bookings"
+        subTitle="View and manage all your car bookings"
         align="left"
       />
 
@@ -67,17 +68,17 @@ const MyBookings = () => {
         ) : (
           bookings.map((booking, index) => (
             <motion.div
+              key={booking._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.4 }}
-              key={booking._id}
               className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
             >
               {/* Car Image + Info */}
               <div className="md:col-span-1">
                 <div className="rounded-md overflow-hidden mb-3">
                   <img
-                    src={booking.car?.image || assets.no_image}
+                    src={booking.car?.images?.[0] || assets.no_image}
                     alt="car"
                     className="w-full h-auto aspect-video object-cover"
                   />
@@ -87,11 +88,52 @@ const MyBookings = () => {
                 </p>
 
                 <p className="text-gray-500">
-                  {booking.car?.year || "--"} • {booking.car?.category || "--"} <br />
-                  {booking.car?.location?.line1 || ""},{" "}
-                  {booking.car?.location?.line2 || ""},{" "}
-                  {booking.car?.location?.pincode || ""}
+                  Year: {booking.car?.year || "--"} • Category:{" "}
+                  {booking.car?.categories?.join(", ") || "--"} • Seats:{" "}
+                  {booking.car?.seating_capacity || "--"}
                 </p>
+                <p className="text-gray-500">
+                  Fuel: {booking.car?.fuel_type || "--"} • Transmission:{" "}
+                  {booking.car?.transmission || "--"}
+                </p>
+
+                {/* ✅ Fixed Location */}
+                <p className="text-gray-500 mt-2">
+                  📍 {booking.car?.locationLine1 || ""}
+                  {booking.car?.locationLine2
+                    ? `, ${booking.car?.locationLine2}`
+                    : ""}
+                  {booking.car?.pincode ? ` - ${booking.car?.pincode}` : ""}
+                </p>
+
+                {/* ✅ Extra Car Details */}
+                <div className="mt-3 space-y-1 text-gray-600 text-sm">
+                  <p>
+                    <span className="font-medium">Price/Day:</span>{" "}
+                    {currency}
+                    {booking.car?.pricePerDay || "--"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Available Units:</span>{" "}
+                    {booking.car?.availableCount || 0}
+                  </p>
+                  <p>
+                    <span className="font-medium">Status:</span>{" "}
+                    {booking.car?.isAvailable ? "Available" : "Unavailable"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Description:</span>{" "}
+                    {booking.car?.description || "No description"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Contact:</span> 📱{" "}
+                    {booking.car?.whatsapp || "--"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Email:</span> ✉️{" "}
+                    {booking.car?.email || "--"}
+                  </p>
+                </div>
               </div>
 
               {/* Booking Info */}
@@ -104,7 +146,9 @@ const MyBookings = () => {
                     className={`px-3 py-1 text-xs rounded-full ${
                       booking.status === "confirmed"
                         ? "bg-green-400/15 text-green-600"
-                        : "bg-red-400/15 text-red-600"
+                        : booking.status === "cancelled"
+                        ? "bg-red-400/15 text-red-600"
+                        : "bg-yellow-400/15 text-yellow-600"
                     }`}
                   >
                     {booking.status || "pending"}
@@ -120,29 +164,8 @@ const MyBookings = () => {
                   <div>
                     <p className="text-gray-500">Rental Period</p>
                     <p>
-                      {booking.pickupDate
-                        ? booking.pickupDate.split("T")[0]
-                        : "--"}{" "}
-                      To{" "}
-                      {booking.returnDate
-                        ? booking.returnDate.split("T")[0]
-                        : "--"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2 mt-3">
-                  <img
-                    src={assets.location_icon_colored}
-                    alt="location"
-                    className="w-4 h-4 mt-1"
-                  />
-                  <div>
-                    <p className="text-gray-500">Pick-up Location</p>
-                    <p>
-                      {booking.car?.location?.line1 || ""},{" "}
-                      {booking.car?.location?.line2 || ""},{" "}
-                      {booking.car?.location?.pincode || ""}
+                      {booking.pickupDate?.split("T")[0] || "--"} To{" "}
+                      {booking.returnDate?.split("T")[0] || "--"}
                     </p>
                   </div>
                 </div>
@@ -158,12 +181,14 @@ const MyBookings = () => {
                     Exchange Vehicle
                   </button>
 
-                  <button
-                    onClick={() => handleCancel(booking._id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                  >
-                    Cancel Booking
-                  </button>
+                  {booking.status !== "cancelled" && (
+                    <button
+                      onClick={() => handleCancel(booking._id)}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                    >
+                      Cancel Booking
+                    </button>
+                  )}
                 </div>
 
                 <div className="text-sm text-gray-500 text-right">
@@ -172,12 +197,7 @@ const MyBookings = () => {
                     {currency}
                     {booking.price || "0"}
                   </h1>
-                  <p>
-                    Booked on{" "}
-                    {booking.createdAt
-                      ? booking.createdAt.split("T")[0]
-                      : "--"}
-                  </p>
+                  <p>Booked on {booking.createdAt?.split("T")[0] || "--"}</p>
                 </div>
               </div>
             </motion.div>
