@@ -69,7 +69,6 @@ const MyBookings = () => {
     setExchangeBooking(booking);
 
     try {
-      // 🔥 Corrected API path
       const { data } = await axios.get("/api/vehicles/available", {
         params: {
           pickupDate: booking.pickupDate,
@@ -161,17 +160,12 @@ const MyBookings = () => {
                 />
               </div>
               <p className="text-lg font-medium mt-2">
-                {(Array.isArray(booking.car?.brand)
-                  ? booking.car.brand.join(", ")
-                  : booking.car?.brand) || "Unknown"}{" "}
-                {booking.car?.model || ""}
+                {(booking.car?.brand || "Unknown")} {booking.car?.model || ""}
               </p>
               <p className="text-gray-500">
                 Year: {booking.car?.year || "--"} • Category:{" "}
-                {Array.isArray(booking.car?.categories)
-                  ? booking.car.categories.join(", ")
-                  : "--"}{" "}
-                • Seats: {booking.car?.seating_capacity || "--"}
+                {booking.car?.categories?.join(", ") || "--"} • Seats:{" "}
+                {booking.car?.seating_capacity || "--"}
               </p>
             </div>
 
@@ -250,6 +244,61 @@ const MyBookings = () => {
         ))
       )}
 
+      {/* ✅ Vehicle Info Modal */}
+      {viewCar && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-md w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">
+              {(viewCar?.brand || "Unknown")} {viewCar?.model || ""}
+            </h2>
+
+            {/* Images */}
+            <div className="flex gap-2 overflow-x-auto mb-4">
+              {viewCar?.images?.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  alt="car"
+                  className="h-32 w-48 rounded object-cover"
+                />
+              ))}
+            </div>
+
+            {/* Vehicle Info */}
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              {currency}
+              {viewCar?.pricePerDay || 0}/day
+            </h1>
+
+            <p><b>Seats:</b> {viewCar?.seating_capacity || "--"}</p>
+            <p><b>Available Count:</b> {viewCar?.availableCount || "--"}</p>
+            <p><b>Discount:</b> {viewCar?.discount || 0}%</p>
+            <p><b>Fuel:</b> {viewCar?.fuel_type || "--"}</p>
+            <p><b>Transmission:</b> {viewCar?.transmission || "--"}</p>
+            <p><b>Category:</b> {viewCar?.categories?.join(", ") || "--"}</p>
+            <p><b>Location:</b> {viewCar?.location?.line1}, {viewCar?.location?.line2}, {viewCar?.location?.city}, {viewCar?.location?.state} - {viewCar?.location?.pincode}</p>
+            <p><b>Email:</b> {viewCar?.email || "--"}</p>
+            <p><b>Whatsapp:</b> {viewCar?.whatsapp || "--"}</p>
+            <p><b>Description:</b> {viewCar?.description || "--"}</p>
+
+            {/* ✅ Added & Updated Date */}
+            <p className="text-sm text-gray-500 mt-2">
+              <b>Added On:</b> {formatDate(viewCar?.createdAt, true)} <br />
+              <b>Last Updated:</b> {formatDate(viewCar?.updatedAt, true)}
+            </p>
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setViewCar(null)}
+                className="px-4 py-2 bg-gray-400 text-white rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ✅ Exchange Modal */}
       {exchangeBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -273,10 +322,7 @@ const MyBookings = () => {
                       className="h-32 w-full object-cover rounded mb-2"
                     />
                     <h3 className="font-medium">
-                      {(Array.isArray(car.brand)
-                        ? car.brand.join(", ")
-                        : car.brand) || "Unknown"}{" "}
-                      {car.model}
+                      {(car.brand || "Unknown")} {car.model}
                     </h3>
                     <p className="text-sm text-gray-500">
                       {currency}
