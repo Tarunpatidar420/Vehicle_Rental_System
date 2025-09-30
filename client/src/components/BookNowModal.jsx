@@ -1,62 +1,83 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useAppContext } from "../context/AppContext"; // ✅ token ke liye
 
 const BookNowModal = ({ isOpen, onClose, car, pickupDate, returnDate }) => {
+  const { token } = useAppContext(); // ✅ token from context
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     whatsapp: "",
     address: "",
     pincode: "",
-    vehicleUse: "", // ✅ backend ke sath sync
-    paymentMethod: "offline", // ✅ lowercase backend ke sath match karega
+    vehicleUse: "",
+    paymentMethod: "offline",
   });
 
-  // Input handle
+  // ✅ Input handle
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Booking confirm
-  // Booking confirm
-const handleConfirmBooking = async () => {
-  if (!pickupDate || !returnDate) {
-    alert("Please select pickup and return date first!");
-    return;
-  }
-
-  if (!car?._id) {
-    alert("Car details not found!");
-    return;
-  }
-
-  try {
-    const res = await axios.post(
-      "http://localhost:5000/api/bookings/create",
-      {
-        ...formData,
-        car: car._id,
-        pickupDate,
-        returnDate,
-      }
-    );
-
-    if (res.data.success) {
-      // ✅ Save guest info in localStorage
-      localStorage.setItem("guestEmail", formData.email);
-      localStorage.setItem("guestWhatsapp", formData.whatsapp);
-
-      alert("Booking confirmed!");
-      onClose();
-    } else {
-      alert(res.data.message || "Booking failed");
+  // ✅ Booking confirm
+  const handleConfirmBooking = async () => {
+    if (!pickupDate || !returnDate) {
+      alert("⚠️ Please select pickup and return date first!");
+      return;
     }
-  } catch (err) {
-    console.error("Booking error:", err);
-    alert("Error while creating booking");
-  }
-};
 
+    if (!car?._id) {
+      alert("⚠️ Car details not found!");
+      return;
+    }
+
+    if (!token) {
+      alert("⚠️ Please login first to book a car!");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/bookings/create",
+        {
+          ...formData,
+          car: car._id,
+          pickupDate,
+          returnDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ FIXED
+          },
+        }
+      );
+
+      console.log("📌 Booking API Response:", res.data);
+
+      if (res.data.success) {
+        alert("✅ Booking confirmed!");
+
+        // ✅ Form reset
+        setFormData({
+          name: "",
+          email: "",
+          whatsapp: "",
+          address: "",
+          pincode: "",
+          vehicleUse: "",
+          paymentMethod: "offline",
+        });
+
+        onClose(); // ✅ modal close
+      } else {
+        alert(res.data.message || "❌ Booking failed");
+      }
+    } catch (err) {
+      console.error("❌ Booking error:", err);
+      alert("Error while creating booking");
+    }
+  };
 
   if (!isOpen || !car) return null;
 

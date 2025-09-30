@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import Title from '../../components/owner/Title';
-import { useAppContext } from '../../context/AppContext';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import Title from "../../components/owner/Title";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const ManageBookings = () => {
   const { currency, axios, isOwner } = useAppContext();
@@ -9,50 +9,69 @@ const ManageBookings = () => {
   const [expandedBooking, setExpandedBooking] = useState(null);
 
   // ✅ Safe date formatter
-  const formatDate = (date) => {
-    if (!date) return '--';
+  const formatDate = (date, withTime = false) => {
+    if (!date) return "--";
     try {
-      return new Date(date).toLocaleDateString();
+      return new Date(date).toLocaleString(
+        "en-IN",
+        withTime
+          ? { dateStyle: "medium", timeStyle: "short" }
+          : { dateStyle: "medium" }
+      );
     } catch {
-      return '--';
+      return "--";
     }
   };
 
-  // =========================
-  // Fetch owner bookings
-  // =========================
+  // ✅ Fetch owner bookings
   const fetchOwnerBookings = async () => {
     if (!isOwner) return;
     try {
-      const { data } = await axios.get('/api/bookings/owner');
+      const { data } = await axios.get("/api/bookings/owner");
       if (data.success) {
         setBookings(data.bookings);
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
-  // =========================
-  // Change booking status
-  // =========================
+  // ✅ Change booking status
   const changeBookingStatus = async (bookingId, status) => {
     try {
-      const { data } = await axios.post('/api/bookings/change-status', { bookingId, status });
+      const { data } = await axios.put("/api/bookings/change-status", {
+        bookingId,
+        status,
+      });
       if (data.success) {
         toast.success(data.message || "Status updated");
         setBookings((prev) =>
-          prev.map((b) =>
-            b._id === bookingId ? { ...b, status } : b
-          )
+          prev.map((b) => (b._id === bookingId ? { ...b, status } : b))
         );
       } else {
         toast.error(data.message || "Failed to update");
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
+
+  // ✅ Delete booking
+  const deleteBooking = async (bookingId) => {
+    try {
+      if (!window.confirm("Are you sure you want to delete this booking?"))
+        return;
+      const { data } = await axios.delete(`/api/bookings/${bookingId}/cancel`);
+      if (data.success) {
+        toast.success(data.message);
+        setBookings((prev) => prev.filter((b) => b._id !== bookingId));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
@@ -77,12 +96,13 @@ const ManageBookings = () => {
               <th className="p-3 font-medium max-md:hidden">Payment</th>
               <th className="p-3 font-medium">Status</th>
               <th className="p-3 font-medium">Details</th>
+              <th className="p-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {bookings.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center p-4 text-gray-400">
+                <td colSpan={7} className="text-center p-4 text-gray-400">
                   No bookings found
                 </td>
               </tr>
@@ -94,17 +114,18 @@ const ManageBookings = () => {
                   {/* Vehicle info */}
                   <td className="p-3 flex items-center gap-3">
                     <img
-                      src={b.car?.images?.[0] || '/default_car_image.png'}
-                      alt={b.car?.model || 'Vehicle'}
+                      src={b.car?.images?.[0] || "/default_car_image.png"}
+                      alt={b.car?.model || "Vehicle"}
                       className="h-12 w-12 rounded-md object-cover"
                     />
                     <div className="max-md:hidden">
                       <div className="font-medium">
-                        {b.car?.brand || 'Unknown'} {b.car?.model || ''}
+                        {b.car?.brand || "Unknown"} {b.car?.model || ""}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {b.car?.year || '--'} • {b.car?.categories || '--'} •
-                        Seats: {b.car?.seating_capacity || '--'}
+                        {b.car?.year || "--"} •{" "}
+                        {b.car?.categories?.join(", ") || "--"} • Seats:{" "}
+                        {b.car?.seating_capacity || "--"}
                       </div>
                     </div>
                   </td>
@@ -123,15 +144,17 @@ const ManageBookings = () => {
                   {/* Payment */}
                   <td className="p-3 max-md:hidden">
                     <span className="bg-gray-100 px-3 py-1 rounded-full text-xs capitalize">
-                      {b.paymentMethod || 'offline'}
+                      {b.paymentMethod || "offline"}
                     </span>
                   </td>
 
-                  {/* Status (editable dropdown) */}
+                  {/* Status */}
                   <td className="p-3">
                     <select
-                      value={(b.status || 'pending').toLowerCase()}
-                      onChange={(e) => changeBookingStatus(b._id, e.target.value)}
+                      value={(b.status || "pending").toLowerCase()}
+                      onChange={(e) =>
+                        changeBookingStatus(b._id, e.target.value)
+                      }
                       className="px-2 py-1 text-gray-500 border border-borderColor rounded-md outline-none"
                     >
                       <option value="pending">Pending</option>
@@ -140,15 +163,27 @@ const ManageBookings = () => {
                     </select>
                   </td>
 
-                  {/* Expand/Collapse details */}
+                  {/* Expand/Collapse */}
                   <td className="p-3">
                     <button
                       onClick={() =>
-                        setExpandedBooking(expandedBooking === b._id ? null : b._id)
+                        setExpandedBooking(
+                          expandedBooking === b._id ? null : b._id
+                        )
                       }
                       className="text-blue-500 underline text-sm"
                     >
-                      {expandedBooking === b._id ? 'Hide Info' : 'Show Info'}
+                      {expandedBooking === b._id ? "Hide Info" : "Show Info"}
+                    </button>
+                  </td>
+
+                  {/* Delete */}
+                  <td className="p-3">
+                    <button
+                      onClick={() => deleteBooking(b._id)}
+                      className="px-3 py-1 bg-red-500 text-white rounded text-xs"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -156,22 +191,44 @@ const ManageBookings = () => {
                 {/* Expanded User & Booking Details */}
                 {expandedBooking === b._id && (
                   <tr className="bg-gray-50 text-gray-600">
-                    <td colSpan={6} className="p-3 text-xs space-y-1">
-                      <div><strong>Name:</strong> {b.user?.name || b.name || '--'}</div>
-                      <div><strong>Email:</strong> {b.user?.email || b.email || '--'}</div>
-                      <div><strong>Whatsapp:</strong> {b.user?.whatsapp || b.whatsapp || '--'}</div>
-                      <div><strong>Address:</strong> {b.user?.address || b.address || '--'}</div>
-                      <div><strong>Pincode:</strong> {b.user?.pincode || b.pincode || '--'}</div>
+                    <td colSpan={7} className="p-3 text-xs space-y-1">
                       <div>
-                        <strong>Vehicle:</strong>{' '}
-                        {b.car?.brand || 'Unknown'} {b.car?.model || ''} (
-                        {b.car?.year || '--'}) • Seats: {b.car?.seating_capacity || '--'}
+                        <strong>Name:</strong> {b.name || b.user?.name || "--"}
                       </div>
                       <div>
-                        <strong>Payment Method:</strong> {b.paymentMethod || 'offline'}
+                        <strong>Email:</strong> {b.email || b.user?.email || "--"}
+                      </div>
+                      <div>
+                        <strong>Whatsapp:</strong> {b.whatsapp || b.user?.whatsapp || "--"}
+                      </div>
+                      <div>
+                        <strong>Address:</strong> {b.address || b.user?.address || "--"}
+                      </div>
+                      <div>
+                        <strong>Pincode:</strong> {b.pincode || b.user?.pincode || "--"}
+                      </div>
+                      <div>
+                        <strong>Vehicle:</strong> {b.car?.brand || "Unknown"}{" "}
+                        {b.car?.model || ""} ({b.car?.year || "--"}) • Seats:{" "}
+                        {b.car?.seating_capacity || "--"}
+                      </div>
+                      <div>
+                        <strong>Payment Method:</strong> {b.paymentMethod || "offline"}
+                      </div>
+                      <div>
+                        <strong>Booked On:</strong> {formatDate(b.createdAt, true)}
+                      </div>
+                      <div>
+                        <strong>Last Updated:</strong> {formatDate(b.updatedAt, true)}
+                      </div>
+                      <div>
+                        <strong>Available Count:</strong>{" "}
+                        {b.car?.availableCount ?? "--"}
                       </div>
                       {b.description && (
-                        <div><strong>Description:</strong> {b.description}</div>
+                        <div>
+                          <strong>Description:</strong> {b.description}
+                        </div>
                       )}
                     </td>
                   </tr>

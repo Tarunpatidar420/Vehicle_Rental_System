@@ -5,7 +5,7 @@ import Car from "../models/Car.js";
 
 // ✅ Generate JWT Token with proper payload
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ _id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 // ✅ Register User
@@ -14,7 +14,10 @@ export const registerUser = async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password || password.length < 8) {
-      return res.json({ success: false, message: "Fill all the fields and password must be at least 8 characters" });
+      return res.json({
+        success: false,
+        message: "Fill all the fields and password must be at least 8 characters",
+      });
     }
 
     const userExists = await User.findOne({ email });
@@ -28,7 +31,7 @@ export const registerUser = async (req, res) => {
     const token = generateToken(user._id.toString());
     res.json({ success: true, token });
   } catch (error) {
-    console.log(error.message);
+    console.log("Register Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
@@ -51,7 +54,7 @@ export const loginUser = async (req, res) => {
     const token = generateToken(user._id.toString());
     res.json({ success: true, token });
   } catch (error) {
-    console.log(error.message);
+    console.log("Login Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
@@ -65,7 +68,7 @@ export const getUserData = async (req, res) => {
     }
     res.json({ success: true, user });
   } catch (error) {
-    console.log(error.message);
+    console.log("GetUserData Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
@@ -76,7 +79,7 @@ export const getCars = async (req, res) => {
     const cars = await Car.find({ isAvailable: true });
     res.json({ success: true, cars });
   } catch (error) {
-    console.log(error.message);
+    console.log("GetCars Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };

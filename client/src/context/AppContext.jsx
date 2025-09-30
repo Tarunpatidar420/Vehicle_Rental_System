@@ -14,6 +14,7 @@ export const AppProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
 
   const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [dashboardKey, setDashboardKey] = useState(localStorage.getItem("dashboardKey") || null); // ✅ added
   const [user, setUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -21,12 +22,18 @@ export const AppProvider = ({ children }) => {
   const [returnDate, setReturnDate] = useState("");
   const [cars, setCars] = useState([]);
 
-  // ✅ Set Bearer token for axios
-  const setAuthToken = (token) => {
+  // ✅ Set Bearer token + dashboardKey for axios
+  const setAuthHeaders = (token, dashboardKey) => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     } else {
       delete axios.defaults.headers.common["Authorization"];
+    }
+
+    if (dashboardKey) {
+      axios.defaults.headers.common["x-dashboard-key"] = dashboardKey;
+    } else {
+      delete axios.defaults.headers.common["x-dashboard-key"];
     }
   };
 
@@ -49,43 +56,39 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fetch public cars
   // ✅ Fetch only available cars
-// ✅ Fetch public cars
-// ✅ Fetch public cars (sirf available filter karo)
-// ✅ Fetch available cars from backend
-const fetchCars = async () => {
-  try {
-    const { data } = await axios.get("/api/vehicles/available");  // ✅ new endpoint
-    if (data?.success) {
-      setCars(data.cars);  // already backend se sirf available cars aa rahi hain
-    } else {
-      toast.error(data.message);
+  const fetchCars = async () => {
+    try {
+      const { data } = await axios.get("/api/vehicles/available");
+      if (data?.success) {
+        setCars(data.cars);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
     }
-  } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
-  }
-};
-
-
+  };
 
   // ✅ Logout
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("dashboardKey"); // ✅ remove key
     setToken(null);
+    setDashboardKey(null);
     setUser(null);
     setIsOwner(false);
-    setAuthToken(null);
+    setAuthHeaders(null, null);
     toast.success("You have been logged out");
     navigate("/");
   };
 
-  // ✅ Init on mount or token change
+  // ✅ Init on mount or token/dashboardKey change
   useEffect(() => {
-    setAuthToken(token);
+    setAuthHeaders(token, dashboardKey);
     fetchUser();
     fetchCars();
-  }, [token]);
+  }, [token, dashboardKey]);
 
   const value = {
     navigate,
@@ -95,6 +98,8 @@ const fetchCars = async () => {
     setUser,
     token,
     setToken,
+    dashboardKey,
+    setDashboardKey, // ✅ expose setter
     isOwner,
     setIsOwner,
     fetchUser,

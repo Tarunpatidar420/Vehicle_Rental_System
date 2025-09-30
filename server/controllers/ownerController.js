@@ -46,12 +46,16 @@ export const addCar = async (req, res) => {
       }
     }
 
-    // Car create with default availability true
+    // ✅ Car create with full info
     const newCar = await Car.create({
       ...car,
+      whatsapp: car.whatsapp || "",
+      email: car.email || "",
+      categories: car.categories || [],
+      location: car.location || {},
       owner: _id,
       images: optimizedImageUrls,
-      isAvailable: true
+      isAvailable: true,
     });
 
     res.json({ success: true, message: "Car Added", car: newCar });
@@ -127,8 +131,8 @@ export const getDashboardData = async (req, res) => {
       .populate("car")
       .sort({ createdAt: -1 });
 
-    const pendingBookings = bookings.filter(b => b.status === "pending");
-    const completedBookings = bookings.filter(b => b.status === "confirmed");
+    const pendingBookings = bookings.filter((b) => b.status === "pending");
+    const completedBookings = bookings.filter((b) => b.status === "confirmed");
 
     const monthlyRevenue = completedBookings.reduce(
       (acc, booking) => acc + (booking.totalPrice || booking.price || 0),
@@ -150,7 +154,6 @@ export const getDashboardData = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-
 
 // ✅ API to Update Car (full info)
 export const updateCar = async (req, res) => {
@@ -192,23 +195,27 @@ export const updateCar = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    // ✅ Update all fields
-    const updatedCar = await Car.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true }
-    );
+    // ✅ whatsapp + email bhi update karo
+    if (updateData.whatsapp !== undefined) car.whatsapp = updateData.whatsapp;
+    if (updateData.email !== undefined) car.email = updateData.email;
+    if (updateData.categories) car.categories = updateData.categories;
+    if (updateData.location) car.location = updateData.location;
 
-    res.json({ success: true, message: "Car Updated Successfully", car: updatedCar });
+    // ✅ Update baaki fields
+    Object.assign(car, updateData);
+
+    const updatedCar = await car.save();
+
+    res.json({
+      success: true,
+      message: "Car Updated Successfully",
+      car: updatedCar,
+    });
   } catch (error) {
     console.log("Update Car Error:", error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
-
-
 
 // ✅ API to Update User Image
 export const updateUserImage = async (req, res) => {
@@ -229,11 +236,7 @@ export const updateUserImage = async (req, res) => {
 
     const optimizedImageUrl = imagekit.url({
       path: response.filePath,
-      transformation: [
-        { width: "400" },
-        { quality: "auto" },
-        { format: "webp" },
-      ],
+      transformation: [{ width: "400" }, { quality: "auto" }, { format: "webp" }],
     });
 
     await User.findByIdAndUpdate(_id, { image: optimizedImageUrl });

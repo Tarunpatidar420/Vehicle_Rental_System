@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../middleware/auth.js";
+import { protect, requireOwner } from "../middleware/auth.js";
 import {
   addCar,
   changeRoleToOwner,
@@ -8,24 +8,27 @@ import {
   getOwnerCars,
   toggleCarAvailability,
   updateUserImage,
-  updateCar,   // ✅ import added
+  updateCar,
 } from "../controllers/ownerController.js";
 import upload from "../middleware/multer.js";
 
 const ownerRouter = express.Router();
 
-// ✅ Role change
-ownerRouter.post("/change-role", protect, changeRoleToOwner);
+// ✅ Change Role (only owner)
+ownerRouter.post("/change-role", protect, requireOwner, changeRoleToOwner);
 
-// ✅ Add Car (multiple images optional, max 5)
+// ✅ Add Car (only owner)
 ownerRouter.post(
   "/add-car",
   protect,
+  requireOwner,
   (req, res, next) => {
     upload.array("images", 5)(req, res, function (err) {
       if (err) {
         console.error("Multer Error in /add-car:", err.message);
-        return res.status(400).json({ success: false, message: err.message });
+        return res
+          .status(400)
+          .json({ success: false, message: err.message });
       }
       next();
     });
@@ -33,27 +36,31 @@ ownerRouter.post(
   addCar
 );
 
-// ✅ Get Owner Cars
-ownerRouter.get("/cars", protect, getOwnerCars);
+// ✅ Get Owner Cars (only owner)
+ownerRouter.get("/cars", protect, requireOwner, getOwnerCars);
 
-// ✅ Toggle Availability
-ownerRouter.post("/toggle-car", protect, toggleCarAvailability);
+// ✅ Toggle Availability (only owner)
+ownerRouter.post("/toggle-car", protect, requireOwner, toggleCarAvailability);
 
-// ✅ Delete Car
-ownerRouter.post("/delete-car", protect, deleteCar);
+// ✅ Delete Car (only owner)
+ownerRouter.post("/delete-car", protect, requireOwner, deleteCar);
 
-// ✅ Dashboard Data
-ownerRouter.get("/dashboard", protect, getDashboardData);
+// ✅ Dashboard Data (only owner + dashboard key)
+ownerRouter.get("/dashboard", protect, requireOwner, getDashboardData);
 
-// ✅ Update Profile Image
+
+// ✅ Update Profile Image (only owner)
 ownerRouter.post(
   "/update-image",
   protect,
+  requireOwner,
   (req, res, next) => {
     upload.single("image")(req, res, function (err) {
       if (err) {
         console.error("Multer Error in /update-image:", err.message);
-        return res.status(400).json({ success: false, message: err.message });
+        return res
+          .status(400)
+          .json({ success: false, message: err.message });
       }
       next();
     });
@@ -61,15 +68,18 @@ ownerRouter.post(
   updateUserImage
 );
 
-// ✅ Update Car (full info)
+// ✅ Update Car (only owner)
 ownerRouter.put(
   "/update-car/:id",
   protect,
+  requireOwner,
   (req, res, next) => {
     upload.array("images", 5)(req, res, function (err) {
       if (err) {
         console.error("Multer Error in /update-car:", err.message);
-        return res.status(400).json({ success: false, message: err.message });
+        return res
+          .status(400)
+          .json({ success: false, message: err.message });
       }
       next();
     });

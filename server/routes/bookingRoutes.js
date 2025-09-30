@@ -1,22 +1,28 @@
 import express from "express";
-import { 
-  changeBookingStatus, 
+import { deleteBooking } from "../controllers/bookingController.js";
+import {  
   checkAvailabilityOfCar, 
   createBooking, 
   getOwnerBookings, 
   getUserBookings,
-  cancelBooking,   // 👈 hard delete wala cancel
-  exchangeBookingVehicle
+  cancelBooking,   
+  exchangeBookingVehicle,
+  changeBookingStatus
 } from "../controllers/bookingController.js";
-import { protect } from "../middleware/auth.js";  // ✅ sirf protect use kar
+import { protect } from "../middleware/auth.js";
 
 const bookingRouter = express.Router();
 
 // ✅ Availability check (sab ke liye)
 bookingRouter.post("/check-availability", checkAvailabilityOfCar);
 
-// ✅ Booking create (guest + logged in dono allowed)
-bookingRouter.post("/create", createBooking);
+// ✅ Booking create (login required)
+// ❌ Galat
+// bookingRouter.post("/create", createBooking);
+
+// ✅ Sahi
+bookingRouter.post("/create", protect, createBooking);
+
 
 // ✅ User bookings (sirf login hone par)
 bookingRouter.get("/user", protect, getUserBookings);
@@ -24,16 +30,18 @@ bookingRouter.get("/user", protect, getUserBookings);
 // ✅ Owner bookings (login required + owner role)
 bookingRouter.get("/owner", protect, getOwnerBookings);
 
-// ✅ Status change (owner only)
-bookingRouter.post("/change-status", protect, changeBookingStatus);
+// ✅ Change booking status (owner only)
+bookingRouter.put("/change-status", protect, changeBookingStatus);
 
-// ❌ OLD (PUT se cancel hota tha → status change karta tha)
-// bookingRouter.put("/:id/cancel", protect, cancelBooking);
 
-// ✅ NEW (DELETE request se booking hard delete hogi)
+// ✅ Booking cancel (hard delete + count adjust)
 bookingRouter.delete("/:id/cancel", protect, cancelBooking);
 
 // ✅ Exchange booking (login required)
 bookingRouter.put("/:id/exchange", protect, exchangeBookingVehicle);
+
+
+bookingRouter.post("/delete", protect, deleteBooking);
+
 
 export default bookingRouter;

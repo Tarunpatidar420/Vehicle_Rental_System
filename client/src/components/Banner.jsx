@@ -1,34 +1,76 @@
-import React from 'react'
-import { assets } from '../assets/assets'
-import { motion } from 'motion/react'
+import React from "react";
+import { motion } from "motion/react";
 
 const Banner = () => {
+  const items = [
+    {
+      title: "Cars",
+      desc: "Comfortable cars for family & business trips.",
+      img: "/images/car.jpg",
+    },
+    {
+      title: "Tractors",
+      desc: "Powerful tractors for agriculture and farming.",
+      img: "/images/tractor.jpg",
+    },
+    {
+      title: "Bikes",
+      desc: "Sport & commuter bikes for quick travel.",
+      img: "/images/bike.jpg",
+    },
+    {
+      title: "Cultivators",
+      desc: "Efficient cultivators for soil preparation.",
+      img: "/images/cultivator.jpg",
+    },
+    {
+      title: "Seed Drills",
+      desc: "Modern seed drills for efficient sowing.",
+      img: "/images/seeddrill.jpg",
+    },
+    {
+      title: "Rotavators",
+      desc: "High-performance rotavators for farming.",
+      img: "/images/rotavator.jpg",
+    },
+  ];
+
   return (
-    <motion.div 
-    initial={{ opacity: 0, y: 50 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6 }}
-    className='flex flex-col md:flex-row md:items-start items-center justify-between px-8 min-md:pl-14 pt-10 bg-gradient-to-r from-[#0558FE] to-[#A9CFFF] max-w-6xl mx-3 md:mx-auto rounded-2xl overflow-hidden'>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6 py-12">
+      {items.map((item, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: index * 0.2 }}
+          className="bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300"
+          style={{ width: "500px", height: "800px" }} // ✅ inline size (easily change later)
+        >
+          <img
+            src={item.img}
+            alt={item.title}
+            className="w-full object-cover"
+            style={{ height: "400px" }} // ✅ Image height fixed
+          />
+          <div className="p-6 flex flex-col justify-between h-[400px]">
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+                {item.title}
+              </h3>
+              <p className="text-gray-600 text-lg">{item.desc}</p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="mt-6 px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-primary-dull transition-all"
+            >
+              Explore {item.title}
+            </motion.button>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
-        <div className='text-white'>
-            <h2 className='text-3xl font-medium'>Do You Own a Luxuries vehical</h2>
-            <p className='mt-2'>Monetize your vehicle effortlessly by listing it on vehical rental system.</p>
-            <p className='max-w-130'>We take Vehical of insurance, driver verification and secure payments — so you can earn passive income, stress-free.</p>
-
-            <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className='px-6 py-2 bg-white hover:bg-slate-100 transition-all text-primary rounded-lg text-sm mt-4 cursor-pointer'>List your vehicals</motion.button>
-        </div>
-
-        <motion.img 
-        initial={{ opacity: 0, x: 50 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        src={assets.banner_car_image} alt="car" className='max-h-45 mt-10'/>
-      
-    </motion.div>
-  )
-}
-
-export default Banner
+export default Banner;

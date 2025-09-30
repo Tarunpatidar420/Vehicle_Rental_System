@@ -1,16 +1,17 @@
+// server/routes/vehicleRoutes.js
 import express from "express";
 import { getAvailableVehicles } from "../controllers/vehicleController.js";
 import Car from "../models/Car.js";
 
 const router = express.Router();
 
-// ✅ Available vehicles (list)
+// ✅ Public: Get all available vehicles (no login required)
 router.get("/available", getAvailableVehicles);
 
-// ✅ Get single vehicle details by ID
+// ✅ Get single vehicle details by ID (public)
 router.get("/:id", async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id);  // ✅ Car model use
+    const car = await Car.findById(req.params.id);  
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
@@ -22,4 +23,4 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-export default router;   // ✅ Correct export
+export default router;
