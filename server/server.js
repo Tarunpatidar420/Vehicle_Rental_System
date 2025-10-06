@@ -10,59 +10,80 @@ import userRouter from "./routes/userRoutes.js";
 import ownerRouter from "./routes/ownerRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import vehicleRouter from "./routes/vehicleRoutes.js";
-import contactRouter from "./routes/contactRoute.js"; // ✅ Contact form route
+import contactRouter from "./routes/contactRoute.js";
 import authRouter from "./routes/authRoutes.js";
-
-
 
 const app = express();
 
-// ✅ Fix for __dirname in ES Module
+// ✅ Fix __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Connect Database
+// ✅ Connect to MongoDB
 await connectDB();
 
-// ✅ Proper CORS Config
+// ✅ Improved & Safe CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "https://vehicalwalamain.onrender.com", // ✅ Your frontend deployed URL
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
-      if (!origin) return callback(null, true);
-
-      // Allow localhost (any port) + deployed frontend
-      if (
-        origin.startsWith("http://localhost:5173") ||
-        origin.startsWith("http://localhost:5174") ||
-        origin.startsWith("http://localhost:") || // any localhost port
-        origin ===  "https://vehicalwalamain.onrender.com"
-      ) {
+      if (!origin) return callback(null, true); // For Postman, mobile apps, etc.
+      if (allowedOrigins.includes(origin) || origin.startsWith("http://localhost:"))
         return callback(null, true);
-      }
-
+      console.warn(`❌ Blocked CORS request from: ${origin}`);
       return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
+    credentials: true, // ✅ Needed for cookies or JWT via headers
   })
 );
 
-// ✅ Middleware
-app.use(express.json());
+// ✅ Core Middlewares
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// ✅ Static folder for images
+// ✅ Static file serving (for uploaded images)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Routes
-app.get("/", (req, res) => res.send("Server is running ✅"));
+// ✅ Health Check Route
+app.get("/", (req, res) => {
+  res.status(200).send("🚀 Smart Vehicle Backend Running Successfully ✅");
+});
+
+// ✅ Register API Routes
 app.use("/api/user", userRouter);
 app.use("/api/owner", ownerRouter);
 app.use("/api/bookings", bookingRouter);
 app.use("/api/vehicles", vehicleRouter);
-app.use("/api/contact", contactRouter); // ✅ Added contact route
+app.use("/api/contact", contactRouter);
 app.use("/api/auth", authRouter);
 
-// ✅ Start Server
+// ✅ Global Error Handler (for debugging in Render)
+app.use((err, req, res, next) => {
+  console.error("🔥 Global Error:", err.message);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+// ✅ Handle Unmatched Routes (404)
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// ✅ Start Express Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚗 VehicalWala Backend running on port ${PORT}`);
+  console.log(`🌍 Frontend allowed: ${allowedOrigins.join(", ")}`);
+});

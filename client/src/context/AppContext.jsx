@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const axios = axiosLib.create({
-  baseURL: import.meta.env.VITE_BASE_URL,  // ✅ same as .env
+  baseURL: import.meta.env.VITE_BACKEND_URL, // ✅ Fix: BASE_URL → BACKEND_URL
 });
 
 export const AppContext = createContext();
@@ -14,7 +14,7 @@ export const AppProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
 
   const [token, setToken] = useState(localStorage.getItem("token") || null);
-  const [dashboardKey, setDashboardKey] = useState(localStorage.getItem("dashboardKey") || null); // ✅ added
+  const [dashboardKey, setDashboardKey] = useState(localStorage.getItem("dashboardKey") || null);
   const [user, setUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -22,24 +22,20 @@ export const AppProvider = ({ children }) => {
   const [returnDate, setReturnDate] = useState("");
   const [cars, setCars] = useState([]);
 
-  // ✅ Set Bearer token + dashboardKey for axios
-  const setAuthHeaders = (token, dashboardKey) => {
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
-    }
+  // ✅ Add interceptor to attach token + dashboardKey automatically
+  axios.interceptors.request.use((config) => {
+    const t = localStorage.getItem("token");
+    const dk = localStorage.getItem("dashboardKey");
 
-    if (dashboardKey) {
-      axios.defaults.headers.common["x-dashboard-key"] = dashboardKey;
-    } else {
-      delete axios.defaults.headers.common["x-dashboard-key"];
-    }
-  };
+    if (t) config.headers["Authorization"] = `Bearer ${t}`;
+    if (dk) config.headers["x-dashboard-key"] = dk;
+
+    return config;
+  });
 
   // ✅ Fetch user data
   const fetchUser = async () => {
-    if (!token) return; // token missing -> skip fetch
+    if (!token) return;
     try {
       const { data } = await axios.get("/api/user/data");
       if (data?.success && data?.user) {
@@ -73,19 +69,17 @@ export const AppProvider = ({ children }) => {
   // ✅ Logout
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("dashboardKey"); // ✅ remove key
+    localStorage.removeItem("dashboardKey");
     setToken(null);
     setDashboardKey(null);
     setUser(null);
     setIsOwner(false);
-    setAuthHeaders(null, null);
     toast.success("You have been logged out");
     navigate("/");
   };
 
-  // ✅ Init on mount or token/dashboardKey change
+  // ✅ Init on mount
   useEffect(() => {
-    setAuthHeaders(token, dashboardKey);
     fetchUser();
     fetchCars();
   }, [token, dashboardKey]);
@@ -99,7 +93,7 @@ export const AppProvider = ({ children }) => {
     token,
     setToken,
     dashboardKey,
-    setDashboardKey, // ✅ expose setter
+    setDashboardKey,
     isOwner,
     setIsOwner,
     fetchUser,

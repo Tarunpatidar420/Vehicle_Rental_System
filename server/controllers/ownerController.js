@@ -4,37 +4,42 @@ import Car from "../models/Car.js";
 import User from "../models/User.js";
 import fs from "fs";
 
-// ✅ API to Change Role of User to Owner
+/* =========================================================================
+   ✅ Change User Role to Owner
+   ========================================================================= */
 export const changeRoleToOwner = async (req, res) => {
   try {
     const { _id } = req.user;
     await User.findByIdAndUpdate(_id, { role: "owner" });
     res.json({ success: true, message: "Now you can list cars" });
   } catch (error) {
-    console.log(error.message);
+    console.error("changeRoleToOwner Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to Add Car (with optional multiple images)
+/* =========================================================================
+   ✅ Add Car (with optional multiple images)
+   ========================================================================= */
 export const addCar = async (req, res) => {
   try {
     const { _id } = req.user;
     let car = JSON.parse(req.body.carData);
-    const imageFiles = req.files; // array of images
+    const imageFiles = req.files;
     let optimizedImageUrls = [];
 
+    // ✅ Upload images to ImageKit
     if (imageFiles && imageFiles.length > 0) {
       for (const file of imageFiles) {
         const fileBuffer = fs.readFileSync(file.path);
-        const response = await imagekit.upload({
+        const uploadRes = await imagekit.upload({
           file: fileBuffer,
           fileName: file.originalname,
           folder: "/cars",
         });
 
-        const optimizedImageUrl = imagekit.url({
-          path: response.filePath,
+        const optimizedUrl = imagekit.url({
+          path: uploadRes.filePath,
           transformation: [
             { width: "1280" },
             { quality: "auto" },
@@ -42,11 +47,10 @@ export const addCar = async (req, res) => {
           ],
         });
 
-        optimizedImageUrls.push(optimizedImageUrl);
+        optimizedImageUrls.push(optimizedUrl);
       }
     }
 
-    // ✅ Car create with full info
     const newCar = await Car.create({
       ...car,
       whatsapp: car.whatsapp || "",
@@ -60,45 +64,51 @@ export const addCar = async (req, res) => {
 
     res.json({ success: true, message: "Car Added", car: newCar });
   } catch (error) {
-    console.log("Add Car Error:", error.message);
+    console.error("Add Car Error:", error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to List Owner Cars
+/* =========================================================================
+   ✅ Get Owner's Cars
+   ========================================================================= */
 export const getOwnerCars = async (req, res) => {
   try {
     const { _id } = req.user;
     const cars = await Car.find({ owner: _id });
     res.json({ success: true, cars });
   } catch (error) {
-    console.log(error.message);
+    console.error("Get Owner Cars Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to Toggle Car Availability
+/* =========================================================================
+   ✅ Toggle Car Availability
+   ========================================================================= */
 export const toggleCarAvailability = async (req, res) => {
   try {
     const { _id } = req.user;
     const { carId } = req.body;
-    const car = await Car.findById(carId);
 
+    const car = await Car.findById(carId);
     if (!car) return res.json({ success: false, message: "Car not found" });
-    if (car.owner.toString() !== _id.toString()) {
+    if (car.owner.toString() !== _id.toString())
       return res.json({ success: false, message: "Unauthorized" });
-    }
 
     car.isAvailable = !car.isAvailable;
     await car.save();
+
     res.json({ success: true, message: "Availability Toggled" });
   } catch (error) {
-    console.log(error.message);
+    console.error("Toggle Availability Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to Delete a Car (hard Delete)
+/* =========================================================================
+   ✅ Delete Car (Hard Delete)
+   ========================================================================= */
 export const deleteCar = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -106,19 +116,20 @@ export const deleteCar = async (req, res) => {
 
     const car = await Car.findById(carId);
     if (!car) return res.json({ success: false, message: "Car not found" });
-    if (car.owner.toString() !== _id.toString()) {
+    if (car.owner.toString() !== _id.toString())
       return res.json({ success: false, message: "Unauthorized" });
-    }
 
     await Car.findByIdAndDelete(carId);
     res.json({ success: true, message: "Car Deleted Permanently" });
   } catch (error) {
-    console.log(error.message);
+    console.error("Delete Car Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to Get Dashboard Data
+/* =========================================================================
+   ✅ Owner Dashboard Data (All bookings visible + performance safe)
+   ========================================================================= */
 export const getDashboardData = async (req, res) => {
   try {
     const { _id, role } = req.user;
@@ -126,56 +137,66 @@ export const getDashboardData = async (req, res) => {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
-    const cars = await Car.find({ owner: _id });
-    const bookings = await Booking.find({ owner: _id })
-      .populate("car")
-      .sort({ createdAt: -1 });
+    // ✅ Fetch data
+    const [cars, bookings] = await Promise.all([
+      Car.find({ owner: _id }),
+      Booking.find({ owner: _id }).populate("car").sort({ createdAt: -1 }),
+    ]);
 
-    const pendingBookings = bookings.filter((b) => b.status === "pending");
-    const completedBookings = bookings.filter((b) => b.status === "confirmed");
+    // ✅ Status wise split
+    const pendingBookings = bookings.filter(b => b.status === "pending");
+    const completedBookings = bookings.filter(b => b.status === "confirmed");
 
+    // ✅ Monthly revenue
     const monthlyRevenue = completedBookings.reduce(
-      (acc, booking) => acc + (booking.totalPrice || booking.price || 0),
+      (acc, b) => acc + (b.totalPrice || b.price || 0),
       0
     );
 
-    const dashboardData = {
-      totalCars: cars.length,
-      totalBookings: bookings.length,
-      pendingBookings: pendingBookings.length,
-      completedBookings: completedBookings.length,
-      recentBookings: bookings.slice(0, 3),
-      monthlyRevenue,
-    };
+    // ✅ Logs for debugging
+    console.log("📊 Total Cars:", cars.length);
+    console.log("📊 Total Bookings:", bookings.length);
 
-    res.json({ success: true, dashboardData });
+    res.json({
+      success: true,
+      dashboardData: {
+        totalCars: cars.length,
+        totalBookings: bookings.length,
+        pendingBookings: pendingBookings.length,
+        completedBookings: completedBookings.length,
+        recentBookings: bookings, // ✅ ALL BOOKINGS, no limit
+        monthlyRevenue,
+      },
+    });
   } catch (error) {
-    console.log(error.message);
+    console.error("Get Dashboard Data Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to Update Car (full info)
+/* =========================================================================
+   ✅ Update Car Info (Full Update)
+   ========================================================================= */
 export const updateCar = async (req, res) => {
   try {
-    const { id } = req.params; // carId from URL
+    const { id } = req.params;
     const { _id } = req.user;
-
     let updateData = JSON.parse(req.body.carData || "{}");
 
-    // ✅ Agar nayi images bheji gayi hain
+    // ✅ Handle new images
     if (req.files && req.files.length > 0) {
       let optimizedImageUrls = [];
+
       for (const file of req.files) {
         const fileBuffer = fs.readFileSync(file.path);
-        const response = await imagekit.upload({
+        const uploadRes = await imagekit.upload({
           file: fileBuffer,
           fileName: file.originalname,
           folder: "/cars",
         });
 
-        const optimizedImageUrl = imagekit.url({
-          path: response.filePath,
+        const optimizedUrl = imagekit.url({
+          path: uploadRes.filePath,
           transformation: [
             { width: "1280" },
             { quality: "auto" },
@@ -183,27 +204,18 @@ export const updateCar = async (req, res) => {
           ],
         });
 
-        optimizedImageUrls.push(optimizedImageUrl);
+        optimizedImageUrls.push(optimizedUrl);
       }
       updateData.images = optimizedImageUrls;
     }
 
-    // ✅ Verify owner
+    // ✅ Verify ownership
     const car = await Car.findById(id);
     if (!car) return res.status(404).json({ success: false, message: "Car not found" });
-    if (car.owner.toString() !== _id.toString()) {
+    if (car.owner.toString() !== _id.toString())
       return res.status(403).json({ success: false, message: "Unauthorized" });
-    }
 
-    // ✅ whatsapp + email bhi update karo
-    if (updateData.whatsapp !== undefined) car.whatsapp = updateData.whatsapp;
-    if (updateData.email !== undefined) car.email = updateData.email;
-    if (updateData.categories) car.categories = updateData.categories;
-    if (updateData.location) car.location = updateData.location;
-
-    // ✅ Update baaki fields
     Object.assign(car, updateData);
-
     const updatedCar = await car.save();
 
     res.json({
@@ -212,37 +224,38 @@ export const updateCar = async (req, res) => {
       car: updatedCar,
     });
   } catch (error) {
-    console.log("Update Car Error:", error.message);
+    console.error("Update Car Error:", error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ✅ API to Update User Image
+/* =========================================================================
+   ✅ Update Owner Profile Image
+   ========================================================================= */
 export const updateUserImage = async (req, res) => {
   try {
     const { _id } = req.user;
     const imageFile = req.file;
-
     if (!imageFile) {
       return res.json({ success: false, message: "No image uploaded" });
     }
 
     const fileBuffer = fs.readFileSync(imageFile.path);
-    const response = await imagekit.upload({
+    const uploadRes = await imagekit.upload({
       file: fileBuffer,
       fileName: imageFile.originalname,
       folder: "/users",
     });
 
     const optimizedImageUrl = imagekit.url({
-      path: response.filePath,
+      path: uploadRes.filePath,
       transformation: [{ width: "400" }, { quality: "auto" }, { format: "webp" }],
     });
 
     await User.findByIdAndUpdate(_id, { image: optimizedImageUrl });
     res.json({ success: true, message: "Image Updated" });
   } catch (error) {
-    console.log(error.message);
+    console.error("Update User Image Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
