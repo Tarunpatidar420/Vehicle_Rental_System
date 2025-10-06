@@ -1,75 +1,94 @@
 import React from "react";
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
+
+// ✅ Local Imports
+import harvester from "../assets/harvester.png";
+import seedreel from "../assets/seedreel.png";
+import cultivator from "../assets/cultivator.png";
+import spraypump from "../assets/spraypump.png";
+import rotorvator from "../assets/rotorvator.png";
+import puni from "../assets/puni-machine.png";
+import miniharvester from "../assets/miniharvester.png";
 
 const Banner = () => {
-  const items = [
+  const navigate = useNavigate();
+
+  const agriculture = [
     {
-      title: "Cars",
-      desc: "Comfortable cars for family & business trips.",
-      img: "/images/car.jpg",
+      name: "Harvester",
+      img: harvester,
+      desc: "Powerful harvester for high-yield harvesting.",
     },
     {
-      title: "Tractors",
-      desc: "Powerful tractors for agriculture and farming.",
-      img: "/images/tractor.jpg",
+      name: "Seed Drill",
+      img: seedreel,
+      desc: "Modern seed drills for perfect planting.",
     },
     {
-      title: "Bikes",
-      desc: "Sport & commuter bikes for quick travel.",
-      img: "/images/bike.jpg",
+      name: "Cultivator",
+      img: cultivator,
+      desc: "Durable cultivators for soil tilling.",
     },
     {
-      title: "Cultivators",
-      desc: "Efficient cultivators for soil preparation.",
-      img: "/images/cultivator.jpg",
+      name: "Spray Pump",
+      img: spraypump,
+      desc: "Portable pumps for efficient field irrigation.",
     },
     {
-      title: "Seed Drills",
-      desc: "Modern seed drills for efficient sowing.",
-      img: "/images/seeddrill.jpg",
+      name: "Rotorvator",
+      img: rotorvator,
+      desc: "Ideal for deep soil preparation and ploughing.",
     },
     {
-      title: "Rotavators",
-      desc: "High-performance rotavators for farming.",
-      img: "/images/rotavator.jpg",
+      name: "Puni Machine",
+      img: puni,
+      desc: "Efficient machine for leveling and soil preparation.",
+    },
+    {
+      name: "Mini Harvester",
+      img: miniharvester,
+      desc: "Compact harvester for small-scale farming.",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6 py-12">
-      {items.map((item, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: index * 0.2 }}
-          className="bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300"
-          style={{ width: "500px", height: "800px" }} // ✅ inline size (easily change later)
-        >
-          <img
-            src={item.img}
-            alt={item.title}
-            className="w-full object-cover"
-            style={{ height: "400px" }} // ✅ Image height fixed
-          />
-          <div className="p-6 flex flex-col justify-between h-[400px]">
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-2">
-                {item.title}
-              </h3>
-              <p className="text-gray-600 text-lg">{item.desc}</p>
+    <section className="px-4 md:px-16 py-10 bg-gradient-to-b from-blue-50 to-white">
+      <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">
+        🌾 Agriculture Machinery
+      </h2>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        {agriculture.map((v, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.1 }}
+            className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+          >
+            <img
+              src={v.img}
+              alt={v.name}
+              className="w-full h-36 object-contain bg-gray-50"
+            />
+            <div className="p-3 text-center">
+              <h3 className="text-sm font-semibold text-gray-800">{v.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">{v.desc}</p>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/agriculture")}
+                className="mt-3 px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 transition-all"
+              >
+                Explore {v.name}
+              </motion.button>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="mt-6 px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-primary-dull transition-all"
-            >
-              Explore {item.title}
-            </motion.button>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
   );
 };
 

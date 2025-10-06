@@ -1,113 +1,80 @@
-import React from 'react'
-import { assets } from '../assets/assets'
-import { motion } from 'motion/react';
+import React from "react";
+import { motion } from "framer-motion";
+import { ReactTyped } from "react-typed"; // ✅ Correct import
+import { assets } from "../assets/assets"; // ✅ Correct path
 
 const Footer = () => {
   return (
-    <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-    
-    className='px-6 md:px-16 lg:px-24 xl:px-32 mt-60 text-sm text-gray-500'>
-
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-            
-            className='flex flex-wrap justify-between items-start gap-8 pb-6 border-borderColor border-b'>
-                <div>
-                    <motion.img 
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
-
-                    src={assets.logo} alt="logo" className='h-8 md:h-9' />
-
-                    <motion.p 
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-
-                    className='max-w-80 mt-3'>
-                        Premium Vehical rental service with a wide selection of luxury and everyday vehicles for all your driving needs.
-                    </motion.p>
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
-                    
-                    className='flex items-center gap-3 mt-6'>
-                        <a href="#"> <img src={assets.facebook_logo} className='w-5 h-5' alt="" /> </a>
-                        <a href="#"> <img src={assets.instagram_logo} className='w-5 h-5' alt="" /> </a>
-                        <a href="#"> <img src={assets.twitter_logo} className='w-5 h-5' alt="" /> </a>
-                        <a href="#"> <img src={assets.gmail_logo} className='w-5 h-5' alt="" /> </a>
-                    </motion.div>
-                </div>
-
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-
-                className='flex flex-wrap justify-between w-1/2 gap-8'>
-
-                <div>
-                    <h2 className='text-base font-medium text-gray-800 uppercase'>Quick Links</h2>
-                    <ul className='mt-3 flex flex-col gap-1.5'>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Browse Cars</a></li>
-                        <li><a href="#">List Your vehical</a></li>
-                        <li><a href="#">About Us</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h2 className='text-base font-medium text-gray-800 uppercase'>Resources</h2>
-                    <ul className='mt-3 flex flex-col gap-1.5'>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Insurance</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h2 className='text-base font-medium text-gray-800 uppercase'>Contact</h2>
-                    <ul className='mt-3 flex flex-col gap-1.5'>
-                        <li>mo. 9589455306</li>
-                        <li>Email. tarunpatidarrupariya@gmail.com</li>
-                        <li>Linkdin.  https://www.linkedin.com/in/tarun-patidar-170a8926b</li>
-                        
-                    </ul>
-                </div>
-
-                </motion.div>
-                
-
-                  
-                
-
-            </motion.div>
-            
-            <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                
-            className='flex flex-col md:flex-row gap-2 items-center justify-between py-5'>
-                <p>© {new Date().getFullYear()} Brand. All rights reserved.</p>
-                <ul className='flex items-center gap-4'>
-                    <li><a href="#">Privacy</a></li>
-                    <li>|</li>
-                    <li><a href="#">Terms</a></li>
-                    <li>|</li>
-                    <li><a href="#">Cookies</a></li>
-                </ul>
-            </motion.div>
+    <footer className="bg-gradient-to-b from-sky-100 to-sky-300 pt-10 pb-6 shadow-inner border-t border-sky-200">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        {/* 🔹 Left Section - Logo and Description */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7 }}
+          className="flex flex-col items-center md:items-start text-center md:text-left"
+        >
+          <img
+            src={assets.logo}
+            alt="Logo"
+            className="h-28 w-auto mb-4 drop-shadow-2xl animate-pulse"
+          />
+          <p className="text-gray-700 text-base max-w-md leading-relaxed font-medium">
+            Premium Vehical rental service with a wide selection of luxury and
+            everyday vehicles for all your driving needs.
+          </p>
+          <div className="flex gap-6 mt-5 text-gray-600 text-2xl">
+            <i className="fab fa-facebook hover:text-blue-600 cursor-pointer transition-transform hover:scale-125"></i>
+            <i className="fab fa-instagram hover:text-pink-600 cursor-pointer transition-transform hover:scale-125"></i>
+            <i className="fab fa-twitter hover:text-sky-500 cursor-pointer transition-transform hover:scale-125"></i>
+            <i className="fas fa-envelope hover:text-red-500 cursor-pointer transition-transform hover:scale-125"></i>
+          </div>
         </motion.div>
-  )
-}
 
-export default Footer
+        {/* 🔹 Right Section - Animated Contact Box */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="relative bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 
+                     p-8 rounded-3xl text-center text-white shadow-2xl hover:shadow-pink-500/40 
+                     transition-all duration-500 overflow-hidden"
+        >
+          <div className="absolute inset-0 border-4 border-transparent rounded-3xl 
+                          animate-[pulse_2s_ease-in-out_infinite] bg-gradient-to-r from-purple-400 to-blue-400 opacity-10"></div>
+
+          <h3 className="text-3xl font-extrabold mb-5 drop-shadow-lg">
+            💬 CONTACT US
+          </h3>
+
+          {/* ✨ Animated text using ReactTyped */}
+          <ReactTyped
+            strings={[
+              "🙏 Thanks for visiting our web app.",
+              "🚗 Explore all vehicles easily.",
+              "🤝 How can we help you?",
+              "📝 Please fill the contact form above 👆",
+            ]}
+            typeSpeed={55}
+            backSpeed={35}
+            loop
+            className="text-lg font-semibold text-yellow-100 tracking-wide drop-shadow-md"
+          />
+        </motion.div>
+      </div>
+
+      {/* 🔹 Bottom Bar */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="text-center text-gray-700 text-sm mt-10 border-t border-sky-200 pt-4"
+      >
+        © 2025 <span className="font-semibold text-blue-700">Smart Vehical</span>. All rights reserved.  
+        <br /> Designed with 💙 by <span className="text-indigo-700 font-semibold">Tarun Patidar</span>
+      </motion.div>
+    </footer>
+  );
+};
+
+export default Footer;

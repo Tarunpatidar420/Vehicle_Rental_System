@@ -19,7 +19,7 @@ const AddCar = () => {
     fuel_type: '',
     seating_capacity: '',
     location: { line1: '', line2: '', pincode: '' },
-    availableCount: 1, // ✅ fixed
+    availableCount: 1,
     description: '',
     whatsapp: '',
     email: '',
@@ -41,6 +41,16 @@ const AddCar = () => {
     setCar({ ...car, categories: options })
   }
 
+  // ✅ Offer generator based on discount
+  const getOfferText = (discount) => {
+    const d = Number(discount)
+    if (d >= 90) return "Unbelievable Offer 🎉"
+    if (d >= 70) return "Mega Offer 🔥"
+    if (d >= 50) return "Big Offer ⭐"
+    if (d >= 30) return "Special Offer 💎"
+    return ""
+  }
+
   const onSubmitHandler = async (e) => {
     e.preventDefault()
     if (isLoading) return null
@@ -59,6 +69,9 @@ const AddCar = () => {
         ? car.brand.split(',').map((b) => b.trim()).filter((b) => b.length > 0)
         : []
 
+      // ✅ Generate offer from discount
+      const offerText = getOfferText(car.discount)
+
       // ✅ Car data as JSON
       formData.append(
         'carData',
@@ -66,6 +79,7 @@ const AddCar = () => {
           ...car,
           brand: brandArray,
           categories: car.categories || [],
+          offer: offerText,   // 👈 Auto Offer
         })
       )
 
@@ -91,7 +105,7 @@ const AddCar = () => {
           fuel_type: '',
           seating_capacity: '',
           location: { line1: '', line2: '', pincode: '' },
-          availableCount: 1, // ✅ fixed
+          availableCount: 1,
           description: '',
           whatsapp: '',
           email: '',
@@ -111,7 +125,7 @@ const AddCar = () => {
     <div className="px-4 py-10 md:px-10 flex-1">
       <Title
         title="Add New Vehicle"
-        subTitle="Fill in details to list a new vehicle for booking, including pricing, availability, and vehicle specifications."
+        subTitle="Fill in details to list a new vehicle for booking, including pricing, discount & offers."
       />
 
       <form
@@ -120,7 +134,7 @@ const AddCar = () => {
       >
         {/* Vehicle Images */}
         <div className="flex flex-col gap-2 w-full">
-          <label className="font-medium">Upload Vehicle Images (optional, up to 4)</label>
+          <label className="font-medium">Upload Vehicle Images (up to 4)</label>
           <input
             type="file"
             accept="image/*"
@@ -143,7 +157,7 @@ const AddCar = () => {
         {/* Brand & Model */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label className="font-medium">Brand (comma separated for multiple)</label>
+            <label className="font-medium">Brand (comma separated)</label>
             <input
               type="text"
               placeholder="e.g. BMW, Mahindra"

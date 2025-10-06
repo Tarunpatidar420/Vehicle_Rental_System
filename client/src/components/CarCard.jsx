@@ -1,135 +1,146 @@
-import React from 'react'
-import { assets } from '../assets/assets'
-import { useNavigate } from 'react-router-dom'
-import { useAppContext } from '../context/AppContext'
-import toast from "react-hot-toast";
+import React from "react";
+import { assets } from "../assets/assets";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
+import "swiper/css";
 
-const CarCard = ({ car, exchangeBookingId }) => {
+const CarCard = ({ car }) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const navigate = useNavigate();
-  const { axios } = useAppContext();
 
-  // 👇 Vehicle Exchange ka function
-  const handleExchange = async (e) => {
-    e.stopPropagation(); // prevent card click navigation
-    try {
-      const { data } = await axios.put(`/api/bookings/${exchangeBookingId}/exchange`, {
-        newVehicleId: car._id,
-      });
-
-      if (data.success) {
-        toast.success("Vehicle exchanged successfully!");
-        navigate("/my-bookings"); // redirect after exchange
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
+  // ✅ Image URL Fix
+  const getImageUrl = (img) => {
+    return img?.startsWith("http")
+      ? img
+      : `${import.meta.env.VITE_BACKEND_URL}/${img}`;
   };
 
-  // 👇 Normal booking navigation
-  const handleCardClick = () => {
-    if (exchangeBookingId) return; // exchange mode me card click disable
-    navigate(`/car-details/${car._id}`);
-    scrollTo(0, 0);
-  };
+  // ✅ Discounted Price Calculation
+  const finalPrice = car.discount
+    ? (car.pricePerDay - (car.pricePerDay * car.discount) / 100).toFixed(0)
+    : car.pricePerDay;
 
-  // ✅ Image URL fix
-  const getImageUrl = () => {
-    if (car.images && car.images.length > 0) {
-      return car.images[0].startsWith("http")
-        ? car.images[0]
-        : `${import.meta.env.VITE_BACKEND_URL}/${car.images[0]}`
-    }
-    return "/images/no-image.png";
+  // ✅ Auto Offer Text
+  const getOfferText = (discount) => {
+    if (discount >= 90) return "🚀 Unbelievable Offer!";
+    if (discount >= 70) return "🔥 Mega Offer!";
+    if (discount >= 50) return "🎉 Big Offer!";
+    if (discount >= 30) return "💎 Special Discount!";
+    return null;
   };
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="group rounded-xl overflow-hidden shadow-lg hover:-translate-y-1 transition-all duration-500 cursor-pointer"
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.3 }}
+      onClick={() => navigate(`/car-details/${car._id}`)}
+      className="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl 
+                 hover:-translate-y-1 transition-all duration-500 bg-white cursor-pointer"
     >
-      {/* Vehicle Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={getImageUrl()}
-          alt={`${car.brand} ${car.model}`}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+      {/* 🚘 Vehicle Images Auto Carousel */}
+      <div className="relative w-full h-56 sm:h-64">
+        <Swiper
+          spaceBetween={10}
+          slidesPerView={1}
+          loop
+          autoplay={{ delay: 2500, disableOnInteraction: false }}
+          modules={[Autoplay]}
+        >
+          {car.images?.slice(0, 4).map((img, index) => (
+            <SwiperSlide key={index}>
+              <motion.img
+                src={getImageUrl(img)}
+                alt={`vehicle-${index}`}
+                className="w-full h-56 sm:h-64 object-cover rounded-lg"
+                whileHover={{ scale: 1.05 }}
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
 
-        {car.isAvailable && (
-          <p className="absolute top-4 left-4 bg-primary/90 text-white text-xs px-2.5 py-1 rounded-full">
-            Available Now
-          </p>
-        )}
-
-        <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
-          <span className="font-semibold">{currency}{car.pricePerDay}</span>
-          <span className="text-sm text-white/80"> / day</span>
-        </div>
-      </div>
-
-      {/* Vehicle Info */}
-      <div className="p-4 sm:p-5">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="text-lg font-medium">{car.brand} {car.model}</h3>
-            <p className="text-muted-foreground text-sm">
-              {car.categories?.join(", ")} • {car.year}
-            </p>
-          </div>
-        </div>
-
-        {/* Basic Specs */}
-        <div className="mt-4 grid grid-cols-2 gap-y-2 text-gray-600">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <img src={assets.users_icon} alt="" className="h-4 mr-2"/>
-            <span>{car.seating_capacity} Seats</span>
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <img src={assets.fuel_icon} alt="" className="h-4 mr-2"/>
-            <span>{car.fuel_type}</span>
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <img src={assets.car_icon} alt="" className="h-4 mr-2"/>
-            <span>{car.transmission}</span>
-          </div>
-        </div>
-
-        {/* ✅ Location Box - Full width */}
-        
-{/* ✅ Location Box - Full width */}
-<div className="mt-4 p-4 border rounded-xl bg-gray-50 shadow-sm w-full">
-  <div className="flex items-center mb-2">
-    <img src={assets.location_icon} alt="Location" className="h-6 w-6 mr-2" />
-    <h4 className="text-base font-semibold text-gray-800">Location Details</h4>
-  </div>
-
-  <div className="ml-8 space-y-1 text-sm text-gray-700">
-    <p><span className="font-medium">Address:</span> 
-      {car.location?.line1 || "N/A"}, {car.location?.line2 || ""}
-    </p>
-    <p><span className="font-medium">Pincode:</span> {car.location?.pincode || "N/A"}</p>
-    <p><span className="font-medium">WhatsApp:</span> {car.whatsapp || "N/A"}</p>
-    <p><span className="font-medium">Email:</span> {car.email || "N/A"}</p>
-  </div>
-</div>
-
-
-
-        {/* 👇 Conditional button */}
-        {exchangeBookingId && (
-          <button
-            onClick={handleExchange}
-            className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+        {/* 🎉 Discount Badge - Bigger than Price */}
+        {car.discount > 0 && (
+          <motion.div
+            animate={{ scale: [1, 1.25, 1], rotate: [0, -5, 5, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="absolute top-3 left-3 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 
+                       text-white font-extrabold px-6 py-3 rounded-full shadow-2xl text-2xl z-20"
           >
-            Exchange This Vehicle
-          </button>
+            🎉 {car.discount}% OFF
+          </motion.div>
         )}
-      </div>
-    </div>
-  )
-}
 
-export default CarCard
+        {/* 🏷️ Offer Ribbon - Auto text based on discount */}
+        {getOfferText(car.discount) && (
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="absolute top-5 right-[-40px] bg-gradient-to-r from-pink-600 to-purple-600 
+                       text-white font-extrabold text-lg px-14 py-2 rotate-45 shadow-2xl z-20"
+          >
+            {getOfferText(car.discount)}
+          </motion.div>
+        )}
+
+        {/* 💰 Price (smaller than discount/offer) */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="absolute bottom-3 left-1/2 transform -translate-x-1/2 
+                     bg-gradient-to-r from-indigo-600 to-purple-600 text-white 
+                     px-6 py-3 rounded-2xl shadow-lg text-xl font-bold text-center z-10"
+        >
+          {currency}{finalPrice}
+          <span className="text-sm font-medium"> / day</span>
+          {car.discount && (
+            <p className="line-through text-sm text-gray-200 mt-1">
+              {currency}{car.pricePerDay}
+            </p>
+          )}
+        </motion.div>
+      </div>
+
+      {/* 📋 Vehicle Info */}
+      <div className="p-4 sm:p-6 space-y-3">
+        <h2 className="text-xl font-bold text-gray-800">
+          {car.brand} {car.model}
+        </h2>
+        <p className="text-gray-500">{car.description || "No description available"}</p>
+
+        <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+          <p><b>Seats:</b> {car.seating_capacity}</p>
+          <p><b>Available:</b> {car.availableCount}</p>
+          <p><b>Category:</b> {car.categories?.join(", ")}</p>
+          <p><b>Year:</b> {car.year}</p>
+          <p><b>Fuel:</b> {car.fuel_type}</p>
+          <p><b>Transmission:</b> {car.transmission}</p>
+        </div>
+
+        {/* 📍 Location */}
+        <div className="mt-4 p-3 border rounded-xl bg-gray-50 shadow-sm w-full">
+          <div className="flex items-center mb-2">
+            <img src={assets.location_icon} alt="Location" className="h-5 w-5 mr-2" />
+            <h4 className="text-sm sm:text-base font-semibold text-gray-800">Location</h4>
+          </div>
+          <div className="ml-7 space-y-1 text-sm text-gray-700">
+            <p><b>Address:</b> {car.location?.line1 || "N/A"}, {car.location?.line2 || ""}</p>
+            <p><b>Pincode:</b> {car.location?.pincode || "N/A"}</p>
+            <p><b>WhatsApp:</b> {car.whatsapp || "N/A"}</p>
+            <p><b>Email:</b> {car.email || "N/A"}</p>
+          </div>
+        </div>
+
+        {/* ⏱️ Dates */}
+        <div className="mt-3 text-xs text-gray-500">
+          <p><b>Added On:</b> {new Date(car.createdAt).toLocaleString()}</p>
+          <p><b>Updated On:</b> {new Date(car.updatedAt).toLocaleString()}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default CarCard;

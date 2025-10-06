@@ -63,13 +63,25 @@ const carSchema = new mongoose.Schema(
     whatsapp: { type: String, default: "" },
     email: { type: String, default: "" },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 // ✅ Auto-update isAvailable before save
 carSchema.pre("save", function (next) {
   this.isAvailable = this.availableCount > 0;
   next();
+});
+
+// ✅ Virtual field: Offer text based on discount
+carSchema.virtual("offer").get(function () {
+  if (!this.discount || this.discount <= 0) return "";
+
+  if (this.discount >= 90) return "Unbelievable Offer 🎉";
+  if (this.discount >= 70) return "Mega Offer 🔥";
+  if (this.discount >= 50) return "Big Offer ⭐";
+  if (this.discount >= 30) return "Special Offer 💎";
+
+  return "";
 });
 
 const Car = mongoose.models.Car || mongoose.model("Car", carSchema);
