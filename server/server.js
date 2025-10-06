@@ -36,7 +36,7 @@ app.use(
         origin.startsWith("http://localhost:5173") ||
         origin.startsWith("http://localhost:5174") ||
         origin.startsWith("http://localhost:") || // any localhost port
-        origin === "https://carrentalfull-main.onrender.com"
+        origin ===  "https://vehicalwalamain.onrender.com"
       ) {
         return callback(null, true);
       }
