@@ -4,8 +4,9 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const axios = axiosLib.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: import.meta.env.VITE_BACKEND_URL,
 });
+
 
 export const AppContext = createContext();
 
