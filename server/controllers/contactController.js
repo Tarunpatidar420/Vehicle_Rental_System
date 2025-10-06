@@ -40,12 +40,16 @@ export const sendContactMail = async (req, res) => {
 
     // transporter
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS,
-      },
-    });
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,       // TLS ke liye false
+  requireTLS: true,    // 🔑 Render par zaruri
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS,
+  },
+});
+
 
     // ================================
     //  Owner Email (User’s details)
