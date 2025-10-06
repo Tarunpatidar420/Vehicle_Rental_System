@@ -39,18 +39,18 @@ export const sendContactMail = async (req, res) => {
     }
 
     // transporter
-    const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT || 587,
-  secure: false, // TLS mode
+   // transporter
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,       // TLS ke liye false
+  requireTLS: true,    // 🔑 Render par zaruri
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false, // important for Render’s SSL
+    user: SMTP_USER,
+    pass: SMTP_PASS,
   },
 });
+
 
 
 
