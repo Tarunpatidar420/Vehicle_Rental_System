@@ -9,14 +9,26 @@ const generateToken = (userId) => {
 };
 
 // ✅ Register User
+// ✅ Register User
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password || password.length < 8) {
+    // Field check
+    if (!name || !email || !password) {
       return res.json({
         success: false,
-        message: "Fill all the fields and password must be at least 8 characters",
+        message: "All fields are required",
+      });
+    }
+
+    // Password validation (6 to 8 chars + at least one special char)
+    const passwordRegex = /^(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{6,8}$/;
+
+    if (!passwordRegex.test(password)) {
+      return res.json({
+        success: false,
+        message: "Password must be 6–8 characters long and include at least one special character (!@#$%^&*).",
       });
     }
 
@@ -29,12 +41,14 @@ export const registerUser = async (req, res) => {
     const user = await User.create({ name, email, password: hashedPassword });
 
     const token = generateToken(user._id.toString());
+
     res.json({ success: true, token });
   } catch (error) {
     console.log("Register Error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ Login User
 export const loginUser = async (req, res) => {

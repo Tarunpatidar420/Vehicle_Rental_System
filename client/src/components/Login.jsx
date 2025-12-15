@@ -15,13 +15,37 @@ const Login = () => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
+
+    // -------------------------
+    // 🔐 PASSWORD VALIDATION
+    // -------------------------
+    if (state === "register") {
+      // Length: 6 to 12
+      if (password.length < 6 || password.length > 12) {
+        toast.error("Password must be between 6 and 12 characters");
+        return;
+      }
+
+      // First letter capital
+      if (!/^[A-Z]/.test(password)) {
+        toast.error("Password must start with a capital letter");
+        return;
+      }
+
+      // At least 1 special char
+      if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(password)) {
+        toast.error("Password must contain at least one special character");
+        return;
+      }
+    }
+
     try {
       const payload =
         state === "login"
           ? { email, password }
           : { name, email, password };
 
-      // ✅ Agar owner hai to dashboardKey required hai
+      // Owner login dashboard key
       if (email === OWNER_EMAIL && state === "login") {
         if (!dashboardKey) {
           toast.error("Dashboard Key is required for owner login");
@@ -32,30 +56,29 @@ const Login = () => {
 
       const { data } = await axios.post(`/api/user/${state}`, payload);
 
-      if (data.success && data.token) {
-        // ✅ Save token
+      if (!data.success) {
+        toast.error(data.message || "Something went wrong");
+        return;
+      }
+
+      if (data.token) {
         localStorage.setItem("token", data.token);
         setToken(data.token);
+      }
 
-        // ✅ Save user email
-        localStorage.setItem("userEmail", email);
+      localStorage.setItem("userEmail", email);
 
-        // ✅ Agar owner hai to dashboard key bhi save
-        if (email === OWNER_EMAIL && dashboardKey) {
-          localStorage.setItem("dashboardKey", dashboardKey);
-        }
+      if (email === OWNER_EMAIL && dashboardKey) {
+        localStorage.setItem("dashboardKey", dashboardKey);
+      }
 
-        toast.success(`${state === "login" ? "Login" : "Signup"} successful`);
-        setShowLogin(false);
+      toast.success(`${state === "login" ? "Login" : "Signup"} successful`);
+      setShowLogin(false);
 
-        // ✅ Redirect owner -> dashboard | user -> home
-        if (email === OWNER_EMAIL) {
-          navigate("/owner"); // Owner ko dashboard bhejo
-        } else {
-          navigate("/"); // Normal user home
-        }
+      if (email === OWNER_EMAIL) {
+        navigate("/owner");
       } else {
-        toast.error(data.message || "Something went wrong");
+        navigate("/");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
@@ -79,14 +102,14 @@ const Login = () => {
           {state === "login" ? "Login" : "Sign Up"}
         </p>
 
-        {/* Name - only register */}
+        {/* Name for register */}
         {state === "register" && (
           <div className="w-full">
             <p>Name</p>
             <input
               onChange={(e) => setName(e.target.value)}
               value={name}
-              placeholder="type here"
+              placeholder="Tarun Patidar"
               className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary"
               type="text"
               required
@@ -100,7 +123,7 @@ const Login = () => {
           <input
             onChange={(e) => setEmail(e.target.value)}
             value={email}
-            placeholder="type here"
+            placeholder="tarunpatidar@gmail.com"
             className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary"
             type="email"
             required
@@ -113,14 +136,14 @@ const Login = () => {
           <input
             onChange={(e) => setPassword(e.target.value)}
             value={password}
-            placeholder="type here"
+            placeholder="Tarun@2805"
             className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary"
             type="password"
             required
           />
         </div>
 
-        {/* ✅ Owner Dashboard Key (only owner login) */}
+        {/* Owner Dashboard Key */}
         {state === "login" && email === OWNER_EMAIL && (
           <div className="w-full">
             <p>Dashboard Access Key</p>
