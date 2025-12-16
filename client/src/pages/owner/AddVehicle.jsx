@@ -55,6 +55,12 @@ const AddVehicle = () => {
     e.preventDefault()
     if (isLoading) return null
     setIsLoading(true)
+    if (!car.categories || car.categories.length === 0) {
+  toast.error("Please select at least one category");
+  setIsLoading(false);
+  return;
+}
+
 
     try {
       const formData = new FormData()
@@ -236,10 +242,10 @@ const AddVehicle = () => {
               value={car.categories}
               className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none h-28"
             >
-              <option value="Car">Car</option>
-              <option value="Bike">Bike</option>
-              <option value="Tractor">Tractor</option>
-              <option value="Agriculture Machinery">Agriculture Machinery</option>
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="tractor">Tractor</option>
+              <option value="agriculture machinery">Agriculture Machinery</option>
             </select>
           </div>
         </div>
