@@ -125,13 +125,14 @@
 
 // export const useAppContext = () => useContext(AppContext);
 
-
 import { createContext, useContext, useEffect, useState } from "react";
 import axiosLib from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Axios instance
+/* =========================
+   🌐 Axios Instance
+========================= */
 const axios = axiosLib.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
 });
@@ -142,9 +143,11 @@ export const AppProvider = ({ children }) => {
   const navigate = useNavigate();
   const currency = import.meta.env.VITE_CURRENCY;
 
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const OWNER_EMAIL = import.meta.env.VITE_OWNER_EMAIL;
+
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [dashboardKey, setDashboardKey] = useState(
-    localStorage.getItem("dashboardKey") || null
+    localStorage.getItem("dashboardKey")
   );
   const [user, setUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -153,9 +156,10 @@ export const AppProvider = ({ children }) => {
   const [returnDate, setReturnDate] = useState("");
   const [cars, setCars] = useState([]);
 
-  // ================================
-  // 🔐 Axios Interceptor (Token + DashboardKey)
-  // ================================
+  /* =========================
+     🔐 Axios Interceptor
+     (token + dashboardKey)
+  ========================= */
   useEffect(() => {
     const interceptor = axios.interceptors.request.use((config) => {
       const t = localStorage.getItem("token");
@@ -167,51 +171,54 @@ export const AppProvider = ({ children }) => {
       return config;
     });
 
-    return () => {
-      axios.interceptors.request.eject(interceptor);
-    };
+    return () => axios.interceptors.request.eject(interceptor);
   }, []);
 
-  // ================================
-  // 👤 Fetch Logged-in User
-  // ================================
+  /* =========================
+     👤 Fetch Logged-in User
+  ========================= */
   const fetchUser = async () => {
     if (!token) return;
+
     try {
       const { data } = await axios.get("/api/user/data");
+
       if (data?.success && data?.user) {
         setUser(data.user);
-        setIsOwner(data.user.role === "owner");
+
+        // ✅ OWNER CHECK (EMAIL ONLY)
+        if (data.user.email === OWNER_EMAIL) {
+          setIsOwner(true);
+        } else {
+          setIsOwner(false);
+        }
       } else {
         setUser(null);
         setIsOwner(false);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
       setUser(null);
       setIsOwner(false);
     }
   };
 
-  // ================================
-  // 🚗 Fetch Available Cars
-  // ================================
+  /* =========================
+     🚗 Fetch Available Cars
+  ========================= */
   const fetchCars = async () => {
     try {
       const { data } = await axios.get("/api/vehicles/available");
       if (data?.success) {
         setCars(data.cars);
-      } else {
-        toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
   };
 
-  // ================================
-  // 🔓 Logout
-  // ================================
+  /* =========================
+     🔓 Logout
+  ========================= */
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("dashboardKey");
@@ -219,53 +226,21 @@ export const AppProvider = ({ children }) => {
     setDashboardKey(null);
     setUser(null);
     setIsOwner(false);
-    toast.success("You have been logged out");
+    toast.success("Logged out successfully");
     navigate("/");
   };
 
-  // ================================
-  // 🔑 Forgot Password
-  // ================================
-  const forgotPassword = async (email) => {
-    try {
-      const { data } = await axios.post("/api/auth/forgot-password", { email });
-      toast.success(data.message || "Reset link sent to email");
-      return data;
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
-      throw error;
-    }
-  };
-
-  // ================================
-  // 🔁 Reset Password
-  // ================================
-  const resetPassword = async (token, password) => {
-    try {
-      const { data } = await axios.post(
-        `/api/auth/reset-password/${token}`,
-        { password }
-      );
-      toast.success(data.message || "Password reset successfully");
-      navigate("/"); // back to login
-      return data;
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
-      throw error;
-    }
-  };
-
-  // ================================
-  // 🔄 Auto Fetch on Token Change
-  // ================================
+  /* =========================
+     🔄 Auto Fetch on Change
+  ========================= */
   useEffect(() => {
     fetchUser();
     fetchCars();
   }, [token, dashboardKey]);
 
-  // ================================
-  // 🌍 Context Value
-  // ================================
+  /* =========================
+     🌍 Context Value
+  ========================= */
   const value = {
     navigate,
     currency,
@@ -278,19 +253,15 @@ export const AppProvider = ({ children }) => {
     setDashboardKey,
     isOwner,
     setIsOwner,
-    fetchUser,
     showLogin,
     setShowLogin,
     logout,
     fetchCars,
     cars,
-    setCars,
     pickupDate,
     setPickupDate,
     returnDate,
     setReturnDate,
-    forgotPassword,   // ✅ NEW
-    resetPassword,    // ✅ NEW
   };
 
   return (
@@ -301,4 +272,3 @@ export const AppProvider = ({ children }) => {
 };
 
 export const useAppContext = () => useContext(AppContext);
-

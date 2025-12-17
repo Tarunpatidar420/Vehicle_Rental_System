@@ -104,12 +104,18 @@ import jwt from "jsonwebtoken";
 import Car from "../models/Car.js";
 
 /* ===========================
-   🔑 Generate JWT
+   🔑 Generate JWT Token
+   (owner info भी token में जाएगा)
 =========================== */
-const generateToken = (userId) => {
-  return jwt.sign({ _id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      _id: user._id,
+      email: user.email,   // 👈 owner पहचान के लिए जरूरी
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 };
 
 /* ===========================
@@ -119,7 +125,7 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    /* 🔹 Field check */
+    // Field check
     if (!name || !email || !password) {
       return res.json({
         success: false,
@@ -127,7 +133,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    /* 📧 Email validation */
+    // Email validation
     if (!email.includes("@")) {
       return res.json({
         success: false,
@@ -135,7 +141,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    /* 🔐 Password validation */
+    // Password validation
     if (password.length < 8 || password.length > 16) {
       return res.json({
         success: false,
@@ -157,7 +163,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    /* 🔁 Existing user check */
+    // Existing user check
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.json({
@@ -166,7 +172,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    /* 🔒 Hash password */
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -175,7 +181,7 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user);
 
     res.json({
       success: true,
@@ -193,11 +199,11 @@ export const registerUser = async (req, res) => {
 };
 
 /* ===========================
-   🔓 LOGIN USER
+   🔓 LOGIN USER (OWNER FIXED)
 =========================== */
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, dashboardKey } = req.body;
 
     if (!email || !password) {
       return res.json({
@@ -222,11 +228,22 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id.toString());
+    /* 👑 OWNER CHECK (जैसा पहले था) */
+    let isOwner = false;
+
+    if (
+      email === process.env.OWNER_EMAIL ||
+      dashboardKey === process.env.DASHBOARD_KEY
+    ) {
+      isOwner = true;
+    }
+
+    const token = generateToken(user);
 
     res.json({
       success: true,
       token,
+      isOwner, // 👈 frontend इसी से owner dashboard खोलता है
       message: "Login successful",
     });
 
