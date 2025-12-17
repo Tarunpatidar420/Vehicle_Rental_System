@@ -27,8 +27,9 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:3000",
-  "https://vehicalwalamain.onrender.com", // ✅ Your frontend deployed URL
+  "https://myvehicalclient.onrender.com" // ✅ CORRECT FRONTEND URL
 ];
+
 
 app.use(
   cors({
