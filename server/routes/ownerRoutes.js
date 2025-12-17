@@ -88,7 +88,6 @@
 // );
 
 // export default ownerRouter;
-
 import express from "express";
 import { protect, requireOwner } from "../middleware/auth.js";
 import {
@@ -105,10 +104,24 @@ import upload from "../middleware/multer.js";
 
 const ownerRouter = express.Router();
 
-// ✅ CHANGE ROLE (login user + dashboard key check inside controller)
-ownerRouter.post("/change-role", protect, changeRoleToOwner);
+/* ===============================
+   👑 OWNER ONLY ROUTES
+================================ */
 
-// ✅ Add Car (only owner)
+/**
+ * CHANGE ROLE → OWNER ONLY
+ * (dashboard key + owner email check already middleware/controller me hai)
+ */
+ownerRouter.post(
+  "/change-role",
+  protect,
+  requireOwner,
+  changeRoleToOwner
+);
+
+/**
+ * ADD CAR
+ */
 ownerRouter.post(
   "/add-car",
   protect,
@@ -117,19 +130,49 @@ ownerRouter.post(
   addCar
 );
 
-// ✅ Get Owner Cars
-ownerRouter.get("/cars", protect, requireOwner, getOwnerCars);
+/**
+ * GET OWNER CARS
+ */
+ownerRouter.get(
+  "/cars",
+  protect,
+  requireOwner,
+  getOwnerCars
+);
 
-// ✅ Toggle Availability
-ownerRouter.post("/toggle-car", protect, requireOwner, toggleCarAvailability);
+/**
+ * TOGGLE CAR AVAILABILITY
+ */
+ownerRouter.post(
+  "/toggle-car",
+  protect,
+  requireOwner,
+  toggleCarAvailability
+);
 
-// ✅ Delete Car
-ownerRouter.post("/delete-car", protect, requireOwner, deleteCar);
+/**
+ * DELETE CAR
+ */
+ownerRouter.post(
+  "/delete-car",
+  protect,
+  requireOwner,
+  deleteCar
+);
 
-// ✅ Dashboard Data
-ownerRouter.get("/dashboard", protect, requireOwner, getDashboardData);
+/**
+ * OWNER DASHBOARD DATA
+ */
+ownerRouter.get(
+  "/dashboard",
+  protect,
+  requireOwner,
+  getDashboardData
+);
 
-// ✅ Update Profile Image
+/**
+ * UPDATE OWNER PROFILE IMAGE
+ */
 ownerRouter.post(
   "/update-image",
   protect,
@@ -138,7 +181,9 @@ ownerRouter.post(
   updateUserImage
 );
 
-// ✅ Update Car
+/**
+ * UPDATE CAR
+ */
 ownerRouter.put(
   "/update-car/:id",
   protect,

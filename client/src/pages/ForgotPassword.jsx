@@ -1,14 +1,10 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 
-const ResetPassword = () => {
-  const { token } = useParams();
-  const { axios } = useAppContext();
-  const navigate = useNavigate();
-
-  const [password, setPassword] = useState("");
+const ForgotPassword = () => {
+  const { axios, navigate } = useAppContext();
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
   const submitHandler = async (e) => {
@@ -16,10 +12,7 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `/api/auth/reset-password/${token}`,
-        { password }
-      );
+      const { data } = await axios.post("/api/auth/forgot-password", { email });
 
       if (!data.success) {
         toast.error(data.message);
@@ -27,10 +20,10 @@ const ResetPassword = () => {
         return;
       }
 
-      toast.success("Password reset successful");
-      navigate("/");
+      toast.success("Password reset link sent to email");
+      navigate("/login");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Reset failed");
+      toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -43,14 +36,14 @@ const ResetPassword = () => {
         className="bg-white p-8 shadow rounded w-80"
       >
         <h2 className="text-xl font-semibold text-center mb-4">
-          Reset Password
+          Forgot Password
         </h2>
 
         <input
-          type="password"
-          placeholder="Enter new password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border rounded mb-4"
           required
         />
@@ -59,11 +52,11 @@ const ResetPassword = () => {
           disabled={loading}
           className="w-full bg-primary text-white py-2 rounded"
         >
-          {loading ? "Resetting..." : "Reset Password"}
+          {loading ? "Sending..." : "Send Reset Link"}
         </button>
       </form>
     </div>
   );
 };
 
-export default ResetPassword;
+export default ForgotPassword;

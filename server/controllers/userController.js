@@ -1,103 +1,3 @@
-// import User from "../models/User.js";
-// import bcrypt from "bcrypt";
-// import jwt from "jsonwebtoken";
-// import Car from "../models/Car.js";
-
-// // ✅ Generate JWT Token with proper payload
-// const generateToken = (userId) => {
-//   return jwt.sign({ _id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
-// };
-
-// // ✅ Register User
-// // ✅ Register User
-// export const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, password } = req.body;
-
-//     // Field check
-//     if (!name || !email || !password) {
-//       return res.json({
-//         success: false,
-//         message: "All fields are required",
-//       });
-//     }
-
-//     // Password validation (6 to 8 chars + at least one special char)
-//     const passwordRegex = /^(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{6,8}$/;
-
-//     if (!passwordRegex.test(password)) {
-//       return res.json({
-//         success: false,
-//         message: "Password must be 6–8 characters long and include at least one special character (!@#$%^&*).",
-//       });
-//     }
-
-//     const userExists = await User.findOne({ email });
-//     if (userExists) {
-//       return res.json({ success: false, message: "User already exists" });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     const user = await User.create({ name, email, password: hashedPassword });
-
-//     const token = generateToken(user._id.toString());
-
-//     res.json({ success: true, token });
-//   } catch (error) {
-//     console.log("Register Error:", error.message);
-//     res.json({ success: false, message: error.message });
-//   }
-// };
-
-
-// // ✅ Login User
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res.json({ success: false, message: "User not found" });
-//     }
-
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//       return res.json({ success: false, message: "Invalid Credentials" });
-//     }
-
-//     const token = generateToken(user._id.toString());
-//     res.json({ success: true, token });
-//   } catch (error) {
-//     console.log("Login Error:", error.message);
-//     res.json({ success: false, message: error.message });
-//   }
-// };
-
-// // ✅ Get User data using Token (JWT)
-// export const getUserData = async (req, res) => {
-//   try {
-//     const { user } = req;
-//     if (!user) {
-//       return res.status(401).json({ success: false, message: "Not authorized" });
-//     }
-//     res.json({ success: true, user });
-//   } catch (error) {
-//     console.log("GetUserData Error:", error.message);
-//     res.json({ success: false, message: error.message });
-//   }
-// };
-
-// // ✅ Get All Cars for the Frontend
-// export const getCars = async (req, res) => {
-//   try {
-//     const cars = await Car.find({ isAvailable: true });
-//     res.json({ success: true, cars });
-//   } catch (error) {
-//     console.log("GetCars Error:", error.message);
-//     res.json({ success: false, message: error.message });
-//   }
-// };
-
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -105,13 +5,14 @@ import Car from "../models/Car.js";
 
 /* ===========================
    🔑 Generate JWT Token
-   (owner info भी token में जाएगा)
+   (OWNER INFO INCLUDED)
 =========================== */
-const generateToken = (user) => {
+const generateToken = (user, isOwner = false) => {
   return jwt.sign(
     {
       _id: user._id,
-      email: user.email,   // 👈 owner पहचान के लिए जरूरी
+      email: user.email,
+      isOwner, // 🔥 MOST IMPORTANT LINE
     },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
@@ -125,54 +26,32 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Field check
     if (!name || !email || !password) {
-      return res.json({
-        success: false,
-        message: "All fields are required",
-      });
+      return res.json({ success: false, message: "All fields are required" });
     }
 
-    // Email validation
     if (!email.includes("@")) {
+      return res.json({ success: false, message: "Invalid email" });
+    }
+
+    if (
+      password.length < 8 ||
+      password.length > 16 ||
+      !/^[A-Z]/.test(password) ||
+      !/[@#$]/.test(password)
+    ) {
       return res.json({
         success: false,
-        message: "Please enter a valid email address",
+        message:
+          "Password must be 8–16 chars, start with capital & contain @ # or $",
       });
     }
 
-    // Password validation
-    if (password.length < 8 || password.length > 16) {
-      return res.json({
-        success: false,
-        message: "Password must be 8–16 characters long",
-      });
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.json({ success: false, message: "User already exists" });
     }
 
-    if (!/^[A-Z]/.test(password)) {
-      return res.json({
-        success: false,
-        message: "Password must start with a capital letter",
-      });
-    }
-
-    if (!/[@#$]/.test(password)) {
-      return res.json({
-        success: false,
-        message: "Password must contain at least one special character (@, #, $)",
-      });
-    }
-
-    // Existing user check
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.json({
-        success: false,
-        message: "User already exists",
-      });
-    }
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -181,25 +60,20 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = generateToken(user);
+    const token = generateToken(user, false);
 
-    res.json({
+    return res.json({
       success: true,
       token,
       message: "Account created successfully",
     });
-
-  } catch (error) {
-    console.log("Register Error:", error.message);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+  } catch (err) {
+    return res.json({ success: false, message: err.message });
   }
 };
 
 /* ===========================
-   🔓 LOGIN USER (OWNER FIXED)
+   🔓 LOGIN USER (OWNER SAFE)
 =========================== */
 export const loginUser = async (req, res) => {
   try {
@@ -208,51 +82,54 @@ export const loginUser = async (req, res) => {
     if (!email || !password) {
       return res.json({
         success: false,
-        message: "Email and password are required",
+        message: "Email and password required",
       });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.json({
-        success: false,
-        message: "User not found",
-      });
+      return res.json({ success: false, message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.json({
-        success: false,
-        message: "Invalid credentials",
-      });
+      return res.json({ success: false, message: "Invalid credentials" });
     }
 
-    /* 👑 OWNER CHECK (जैसा पहले था) */
+    /* ===========================
+       👑 OWNER CHECK (STRICT)
+    =========================== */
     let isOwner = false;
 
-    if (
-      email === process.env.OWNER_EMAIL ||
-      dashboardKey === process.env.DASHBOARD_KEY
-    ) {
+    if (email === process.env.OWNER_EMAIL) {
+      if (!dashboardKey) {
+        return res.json({
+          success: false,
+          message: "Dashboard key required for owner",
+        });
+      }
+
+      if (dashboardKey !== process.env.DASHBOARD_KEY) {
+        return res.json({
+          success: false,
+          message: "Invalid dashboard key",
+        });
+      }
+
       isOwner = true;
     }
 
-    const token = generateToken(user);
+    // 🔥 TOKEN WITH OWNER FLAG
+    const token = generateToken(user, isOwner);
 
-    res.json({
+    return res.json({
       success: true,
       token,
-      isOwner, // 👈 frontend इसी से owner dashboard खोलता है
+      isOwner,
       message: "Login successful",
     });
-
-  } catch (error) {
-    console.log("Login Error:", error.message);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+  } catch (err) {
+    return res.json({ success: false, message: err.message });
   }
 };
 
@@ -262,23 +139,15 @@ export const loginUser = async (req, res) => {
 export const getUserData = async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized",
-      });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    res.json({
+    return res.json({
       success: true,
-      user: req.user,
+      user: req.user, // 👈 contains isOwner now
     });
-
-  } catch (error) {
-    console.log("GetUserData Error:", error.message);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+  } catch (err) {
+    return res.json({ success: false, message: err.message });
   }
 };
 
@@ -288,17 +157,8 @@ export const getUserData = async (req, res) => {
 export const getCars = async (req, res) => {
   try {
     const cars = await Car.find({ isAvailable: true });
-
-    res.json({
-      success: true,
-      cars,
-    });
-
-  } catch (error) {
-    console.log("GetCars Error:", error.message);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+    return res.json({ success: true, cars });
+  } catch (err) {
+    return res.json({ success: false, message: err.message });
   }
 };

@@ -52,18 +52,16 @@
 //     message: "Access denied: Admins only",
 //   });
 // };
-
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 /* ===========================
-   🔐 PROTECT (JWT VERIFY)
+   🔐 PROTECT
 =========================== */
 export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // ❌ No token
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
@@ -71,15 +69,10 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // ✅ Extract token
     const token = authHeader.split(" ")[1];
-
-    // ✅ Verify JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ IMPORTANT FIX: always use decoded._id
     const user = await User.findById(decoded._id).select("-password");
-
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -87,12 +80,14 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // ✅ Attach user to request
-    req.user = user;
-    next();
+    // 🔥 JWT is single source of truth
+    req.user = {
+      ...user._doc,
+      isOwner: decoded.isOwner === true,
+    };
 
+    next();
   } catch (error) {
-    console.log("Auth Error:", error.message);
     return res.status(401).json({
       success: false,
       message: "Not authorized",
@@ -101,23 +96,14 @@ export const protect = async (req, res, next) => {
 };
 
 /* ===========================
-   👑 OWNER DASHBOARD ACCESS
+   👑 REQUIRE OWNER
 =========================== */
 export const requireOwner = (req, res, next) => {
-  const ownerEmail = process.env.OWNER_EMAIL;
-  const dashboardKey = process.env.DASHBOARD_KEY;
-
-  // ✅ SAME logic as before (dashboard key preserved)
-  if (
-    req.user &&
-    req.user.email === ownerEmail &&
-    req.headers["x-dashboard-key"] === dashboardKey
-  ) {
-    return next();
+  if (!req.user || req.user.isOwner !== true) {
+    return res.status(403).json({
+      success: false,
+      message: "Owner access only",
+    });
   }
-
-  return res.status(403).json({
-    success: false,
-    message: "Access denied: Owner only",
-  });
+  next();
 };
