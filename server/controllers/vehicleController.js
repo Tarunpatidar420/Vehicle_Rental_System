@@ -1,19 +1,19 @@
 import Car from "../models/Car.js";
 import Booking from "../models/Booking.js";
 
-// =======================
+
 // Helper: Check Availability
-// =======================
+
 const checkAvailability = async (car, pickupDate, returnDate) => {
   try {
     const bookings = await Booking.find({
       car: car._id,
       pickupDate: { $lte: returnDate },
       returnDate: { $gte: pickupDate },
-      status: { $ne: "cancelled" }, // ✅ cancelled bookings ignore
+      status: { $ne: "cancelled" }, //cancelled bookings ignore
     });
 
-    // ✅ Agar already booked < car.availableCount hai to gaadi available hai
+    //  Agar already booked < car.availableCount hai to gaadi available hai
     return bookings.length < (car.availableCount || 1);
   } catch (err) {
     console.error("Error in checkAvailability:", err.message);
@@ -21,21 +21,21 @@ const checkAvailability = async (car, pickupDate, returnDate) => {
   }
 };
 
-// =======================
+
 // API: Get Available Vehicles (Public)
-// =======================
+
 export const getAvailableVehicles = async (req, res) => {
   try {
     let { pickupDate, returnDate } = req.query;
 
-    // ✅ Dates ko safe parse karo
+    //  Dates ko safe parse karo
     if (pickupDate) pickupDate = new Date(pickupDate);
     if (returnDate) returnDate = new Date(returnDate);
 
-    // ✅ Sirf cars jisme isAvailable true hai aur availableCount > 0 hai
+    //  Sirf cars jisme isAvailable true hai aur availableCount > 0 hai
     let cars = await Car.find({ isAvailable: true, availableCount: { $gt: 0 } });
 
-    // ✅ Bookings ke hisaab se filter karo
+    //  Bookings ke hisaab se filter karo
     const availablePromises = cars.map(async (car) => {
       const start = pickupDate || new Date();
       const end =

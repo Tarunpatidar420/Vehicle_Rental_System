@@ -1,47 +1,90 @@
 import express from "express";
-import { deleteBooking } from "../controllers/bookingController.js";
-import {  
-  checkAvailabilityOfCar, 
-  createBooking, 
-  getOwnerBookings, 
+
+import {
+  checkAvailabilityOfCar,
+  createBooking,
+  getOwnerBookings,
   getUserBookings,
-  cancelBooking,   
+  cancelBooking,
   exchangeBookingVehicle,
-  changeBookingStatus
+  changeBookingStatus,
+  deleteBooking,
 } from "../controllers/bookingController.js";
+
 import { protect } from "../middleware/auth.js";
 
 const bookingRouter = express.Router();
 
-// ✅ Availability check (sab ke liye)
-bookingRouter.post("/check-availability", checkAvailabilityOfCar);
+// ==============================
+//  Check Available Vehicles
+// ==============================
+bookingRouter.get(
+  "/check-availability",
+  protect,
+  checkAvailabilityOfCar
+);
 
-// ✅ Booking create (login required)
-// ❌ Galat
-// bookingRouter.post("/create", createBooking);
+// ==============================
+//  Create Booking
+// ==============================
+bookingRouter.post(
+  "/create",
+  protect,
+  createBooking
+);
 
-// ✅ Sahi
-bookingRouter.post("/create", protect, createBooking);
+// ==============================
+//  User Bookings
+// ==============================
+bookingRouter.get(
+  "/user",
+  protect,
+  getUserBookings
+);
 
+// ==============================
+//  Owner Bookings
+// ==============================
+bookingRouter.get(
+  "/owner",
+  protect,
+  getOwnerBookings
+);
 
-// ✅ User bookings (sirf login hone par)
-bookingRouter.get("/user", protect, getUserBookings);
+// ==============================
+//  Owner Change Status
+// ==============================
+bookingRouter.put(
+  "/change-status",
+  protect,
+  changeBookingStatus
+);
 
-// ✅ Owner bookings (login required + owner role)
-bookingRouter.get("/owner", protect, getOwnerBookings);
+// ==============================
+//  Cancel Booking (User)
+// ==============================
+bookingRouter.delete(
+  "/:id/cancel",
+  protect,
+  cancelBooking
+);
 
-// ✅ Change booking status (owner only)
-bookingRouter.put("/change-status", protect, changeBookingStatus);
+// ==============================
+//  Exchange Vehicle
+// ==============================
+bookingRouter.put(
+  "/:id/exchange",
+  protect,
+  exchangeBookingVehicle
+);
 
-
-// ✅ Booking cancel (hard delete + count adjust)
-bookingRouter.delete("/:id/cancel", protect, cancelBooking);
-
-// ✅ Exchange booking (login required)
-bookingRouter.put("/:id/exchange", protect, exchangeBookingVehicle);
-
-
-bookingRouter.post("/delete", protect, deleteBooking);
-
+// ==============================
+//  Delete Cancelled Booking
+// ==============================
+bookingRouter.delete(
+  "/delete/:id",
+  protect,
+  deleteBooking
+);
 
 export default bookingRouter;

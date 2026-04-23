@@ -109,7 +109,7 @@ router.post("/forgot-password", async (req, res) => {
     user.resetTokenExpire = Date.now() + 15 * 60 * 1000; // 15 min
     await user.save();
 
-    // 🔥 PROD me email bhejna, abhi console
+    //  PROD me email bhejna, abhi console
     console.log("RESET LINK TOKEN:", resetToken);
 
     res.json({

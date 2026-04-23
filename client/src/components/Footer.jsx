@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ReactTyped } from "react-typed"; // ✅ Correct import
-import { assets } from "../assets/assets"; // ✅ Correct path
+import { ReactTyped } from "react-typed"; //  Correct import
+import { assets } from "../assets/assets"; //  Correct path
 
 const Footer = () => {
   return (
@@ -44,16 +44,16 @@ const Footer = () => {
                           animate-[pulse_2s_ease-in-out_infinite] bg-gradient-to-r from-purple-400 to-blue-400 opacity-10"></div>
 
           <h3 className="text-3xl font-extrabold mb-5 drop-shadow-lg">
-            💬 CONTACT US
+           CONTACT US
           </h3>
 
-          {/* ✨ Animated text using ReactTyped */}
+          {/*  Animated text using ReactTyped */}
           <ReactTyped
             strings={[
-              "🙏 Thanks for visiting our web app.",
-              "🚗 Explore all vehicles easily.",
-              "🤝 How can we help you?",
-              "📝 Please fill the contact form above 👆",
+              " Thanks for visiting our web app.",
+              " Explore all vehicles easily.",
+              " How can we help you?",
+              " Please fill the contact form above 👆",
             ]}
             typeSpeed={55}
             backSpeed={35}
@@ -63,7 +63,7 @@ const Footer = () => {
         </motion.div>
       </div>
 
-      {/* 🔹 Bottom Bar */}
+      {/*  Bottom Bar */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -71,7 +71,7 @@ const Footer = () => {
         className="text-center text-gray-700 text-sm mt-10 border-t border-sky-200 pt-4"
       >
         © 2025 <span className="font-semibold text-blue-700">Smart Vehical</span>. All rights reserved.  
-        <br /> Designed with 💙 by <span className="text-indigo-700 font-semibold">Tarun Patidar</span>
+        <br /> Designed with  by <span className="text-indigo-700 font-semibold">Tarun Patidar</span>
       </motion.div>
     </footer>
   );

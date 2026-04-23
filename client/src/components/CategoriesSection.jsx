@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "swiper/css";
 import "swiper/css/pagination";
 
-// ✅ Local Images Imports
+//  Local Images Imports
 import herohonda from "../assets/herohonda.png";
 import ktm from "../assets/ktm.png";
 import pulsure from "../assets/pulsure.png";
@@ -19,9 +19,9 @@ import trali from "../assets/trali.png"; // check spelling: if file is trali.png
 const CategoriesSection = () => {
   const navigate = useNavigate();
 
-  // ✅ Categories with Local Images
+  //  Categories with Local Images
   const categories = [
-    // 🏍️ Bikes
+    //  Bikes
     {
       title: "Hero Honda",
       emoji: "🏍️",
@@ -44,7 +44,7 @@ const CategoriesSection = () => {
       desc: "Perfect balance of speed and comfort.",
     },
 
-    // 🚜 Tractors
+    //  Tractors
     {
       title: "Mahindra Tractor",
       emoji: "🚜",
@@ -85,10 +85,10 @@ const CategoriesSection = () => {
   return (
     <section className="px-4 md:px-16 py-10 bg-gradient-to-b from-blue-50 to-white">
       <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">
-        🚘 Explore Our Vehicles
+         Explore Our Vehicles
       </h2>
 
-      {/* ✅ Mobile Swiper */}
+      {/*  Mobile Swiper */}
       <div className="md:hidden">
         <Swiper
           modules={[Pagination]}
@@ -124,7 +124,7 @@ const CategoriesSection = () => {
         </Swiper>
       </div>
 
-      {/* ✅ Desktop Grid */}
+      {/*  Desktop Grid */}
       <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-5">
         {categories.map((cat, index) => (
           <motion.div

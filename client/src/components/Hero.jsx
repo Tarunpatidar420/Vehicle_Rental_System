@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// ✅ Import your local car images from assets folder
+//  Import your local car images from assets folder
 import car1 from "../assets/car_image1.png";
 import car2 from "../assets/car_image2.png";
 import car3 from "../assets/car_image3.png";
@@ -16,11 +16,11 @@ const Hero = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!pickupLocation) return alert("⚠️ Please enter pickup location!");
+    if (!pickupLocation) return alert(" Please enter pickup location!");
     window.location.href = `/cars?pickupLocation=${pickupLocation}`;
   };
 
-  // ✅ Local car data (using imported images)
+  //  Local car data (using imported images)
   const cars = [
     {
       name: "Sedan",
@@ -54,7 +54,7 @@ const Hero = () => {
     },
   ];
 
-  // ✅ Auto-scroll effect
+  //  Auto-scroll effect
   useEffect(() => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
@@ -93,7 +93,7 @@ const Hero = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="text-2xl sm:text-4xl md:text-5xl font-semibold leading-snug"
       >
-        Find the Best Vehicles for Rent 🚗✨
+        Find the Best Vehicles for Rent 
       </motion.h1>
 
       {/* Search Bar */}
@@ -130,7 +130,7 @@ const Hero = () => {
         </motion.button>
       </motion.form>
 
-      {/* ✅ Car Carousel */}
+      {/*  Car Carousel */}
       <div className="relative w-full max-w-7xl">
         <h2 className="text-lg sm:text-xl font-bold text-left mb-3 px-2">
           Explore Cars

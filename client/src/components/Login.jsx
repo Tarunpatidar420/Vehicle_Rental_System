@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 
-// ✅ ONLY for UI condition (security backend pe hai)
+//  ONLY for UI condition (security backend )
 const OWNER_EMAIL = "tarunpatidarrupariya@gmail.com";
 
 const Login = () => {
@@ -21,7 +21,7 @@ const Login = () => {
   const [dashboardKey, setDashboardKey] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // 🔄 clear form when modal opens
+  //  clear form when modal opens
   useEffect(() => {
     setName("");
     setEmail("");
@@ -39,7 +39,7 @@ const Login = () => {
           ? { email, password }
           : { name, email, password };
 
-      // ✅ dashboardKey ONLY if owner email
+      //  dashboardKey ONLY if owner email
       if (state === "login" && email === OWNER_EMAIL) {
         payload.dashboardKey = dashboardKey;
       }
@@ -51,11 +51,11 @@ const Login = () => {
         return;
       }
 
-      // 🔐 Save token
+      //  Save token
       localStorage.setItem("token", data.token);
       setToken(data.token);
 
-      // 👑 OWNER → backend decides
+      //  OWNER → backend decides
       if (data.isOwner) {
         setIsOwner(true);
         navigate("/owner");
@@ -127,7 +127,7 @@ const Login = () => {
           </span>
         </div>
 
-        {/* 🔑 Dashboard key → ONLY owner email */}
+        {/*  Dashboard key → ONLY owner email */}
         {state === "login" && email === OWNER_EMAIL && (
           <input
             placeholder="Dashboard key (owner only)"

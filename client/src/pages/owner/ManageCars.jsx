@@ -11,7 +11,7 @@ const ManageCars = () => {
   const [editingCar, setEditingCar] = useState(null);
   const [form, setForm] = useState({});
 
-  // ✅ Fetch owner's cars
+  //  Fetch owner's cars
   const fetchOwnerCars = async () => {
     try {
       const { data } = await axios.get("/api/owner/cars");
@@ -25,7 +25,7 @@ const ManageCars = () => {
     }
   };
 
-  // ✅ Toggle availability
+  //  Toggle availability
   const toggleAvailability = async (carId) => {
     try {
       const { data } = await axios.post("/api/owner/toggle-car", { carId });
@@ -40,7 +40,7 @@ const ManageCars = () => {
     }
   };
 
-  // ✅ Delete car
+  //  Delete car
   const deleteCar = async (carId) => {
     try {
       if (!window.confirm("Are you sure you want to delete this car?")) return;
@@ -57,18 +57,18 @@ const ManageCars = () => {
     }
   };
 
-  // ✅ Open edit modal
+  //  Open edit modal
   const openEdit = (car) => {
     setEditingCar(car);
     setForm(car);
   };
 
-  // ✅ Handle input changes
+  //  Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ Update car info
+  //  Update car info
   const updateCar = async () => {
     try {
       const formData = new FormData();
@@ -109,7 +109,7 @@ const ManageCars = () => {
         subTitle="View all listed cars, update their details, or remove them from the booking platform."
       />
 
-      {/* ✅ Table */}
+      {/*  Table */}
       <div className="max-w-5xl w-full rounded-md overflow-hidden border border-borderColor mt-6">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm text-gray-600 min-w-[700px]">
@@ -136,7 +136,7 @@ const ManageCars = () => {
                     key={index}
                     className="border-t border-borderColor hover:bg-gray-50 transition"
                   >
-                    {/* ✅ Car Info */}
+                    {/*  Car Info */}
                     <td className="p-3 flex items-center gap-3">
                       <img
                         src={car.images?.[0] || assets.default_car}
@@ -174,7 +174,7 @@ const ManageCars = () => {
                       </span>
                     </td>
 
-                    {/* ✅ Actions (Mobile Responsive like ManageBookings.jsx) */}
+                    {/*  Actions (Mobile Responsive like ManageBookings.jsx) */}
                     <td className="p-3">
                       <div className="flex flex-wrap items-center justify-start gap-2 md:gap-3">
                         <button
@@ -223,7 +223,7 @@ const ManageCars = () => {
         </div>
       </div>
 
-      {/* ✅ View Modal */}
+      {/*  View Modal */}
       {viewCar && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-md w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -274,7 +274,7 @@ const ManageCars = () => {
         </div>
       )}
 
-      {/* ✅ Edit Modal */}
+      {/*  Edit Modal */}
       {editingCar && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-md w-full max-w-2xl max-h-[90vh] overflow-y-auto">

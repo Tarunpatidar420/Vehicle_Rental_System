@@ -3,10 +3,10 @@ const { ObjectId } = mongoose.Schema.Types;
 
 const carSchema = new mongoose.Schema(
   {
-    // ✅ Owner reference
+    //  Owner reference
     owner: { type: ObjectId, ref: "User", required: true },
 
-    // ✅ Brand (multi-brand support)
+    //  Brand (multi-brand support)
     brand: {
       type: [String],
       required: true,
@@ -38,7 +38,7 @@ const carSchema = new mongoose.Schema(
 
     discount: { type: Number, default: 0, min: 0, max: 100 },
 
-    // ✅ Kitni gaadi physically hai (stock count)
+    //  Kitni gaadi physically hai (stock count)
     availableCount: { type: Number, required: true, default: 1, min: 0 },
 
     location: {
@@ -57,7 +57,7 @@ const carSchema = new mongoose.Schema(
       validate: (v) => v.length <= 4,
     },
 
-    // ✅ runtime update based on stock
+    //  runtime update based on stock
     isAvailable: { type: Boolean, default: true },
 
     whatsapp: { type: String, default: "" },
@@ -66,20 +66,20 @@ const carSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-// ✅ Auto-update isAvailable before save
+//  Auto-update isAvailable before save
 carSchema.pre("save", function (next) {
   this.isAvailable = this.availableCount > 0;
   next();
 });
 
-// ✅ Virtual field: Offer text based on discount
+//  Virtual field: Offer text based on discount
 carSchema.virtual("offer").get(function () {
   if (!this.discount || this.discount <= 0) return "";
 
-  if (this.discount >= 90) return "Unbelievable Offer 🎉";
-  if (this.discount >= 70) return "Mega Offer 🔥";
-  if (this.discount >= 50) return "Big Offer ⭐";
-  if (this.discount >= 30) return "Special Offer 💎";
+  if (this.discount >= 90) return "Unbelievable Offer ";
+  if (this.discount >= 70) return "Mega Offer ";
+  if (this.discount >= 50) return "Big Offer ";
+  if (this.discount >= 30) return "Special Offer ";
 
   return "";
 });

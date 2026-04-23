@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Local Imports
+//  Local Imports
 import harvester from "../assets/harvester.png";
 import seedreel from "../assets/seedreel.png";
 import cultivator from "../assets/cultivator.png";
@@ -55,7 +55,7 @@ const Banner = () => {
   return (
     <section className="px-4 md:px-16 py-10 bg-gradient-to-b from-blue-50 to-white">
       <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">
-        🌾 Agriculture Machinery
+         Agriculture Machinery
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">

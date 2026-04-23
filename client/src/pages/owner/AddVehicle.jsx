@@ -41,7 +41,7 @@ const AddVehicle = () => {
     setCar({ ...car, categories: options })
   }
 
-  // ✅ Offer generator based on discount
+  //  Offer generator based on discount
   const getOfferText = (discount) => {
     const d = Number(discount)
     if (d >= 90) return "Unbelievable Offer 🎉"
@@ -65,31 +65,31 @@ const AddVehicle = () => {
     try {
       const formData = new FormData()
 
-      // ✅ Images
+      //  Images
       if (images.length > 0) {
         images.forEach((img) => formData.append('images', img))
       }
 
-      // ✅ Brand array
+      //  Brand array
       const brandArray = car.brand
         ? car.brand.split(',').map((b) => b.trim()).filter((b) => b.length > 0)
         : []
 
-      // ✅ Generate offer from discount
+      //  Generate offer from discount
       const offerText = getOfferText(car.discount)
 
-      // ✅ Car data as JSON
+      //  Car data as JSON
       formData.append(
         'carData',
         JSON.stringify({
           ...car,
           brand: brandArray,
           categories: car.categories || [],
-          offer: offerText,   // 👈 Auto Offer
+          offer: offerText,   //  Auto Offer
         })
       )
 
-      // ✅ Axios POST request with correct headers
+      //  Axios POST request with correct headers
       const { data } = await axios.post('/api/owner/add-car', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

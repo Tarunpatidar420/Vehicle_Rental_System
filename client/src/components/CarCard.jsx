@@ -10,24 +10,24 @@ const CarCard = ({ car }) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const navigate = useNavigate();
 
-  // ✅ Image URL Fix
+  //  Image URL Fix
   const getImageUrl = (img) => {
     return img?.startsWith("http")
       ? img
       : `${import.meta.env.VITE_BACKEND_URL}/${img}`;
   };
 
-  // ✅ Discounted Price Calculation
+  //  Discounted Price Calculation
   const finalPrice = car.discount
     ? (car.pricePerDay - (car.pricePerDay * car.discount) / 100).toFixed(0)
     : car.pricePerDay;
 
-  // ✅ Auto Offer Text
+  //  Auto Offer Text
   const getOfferText = (discount) => {
-    if (discount >= 90) return "🚀 Unbelievable Offer!";
-    if (discount >= 70) return "🔥 Mega Offer!";
-    if (discount >= 50) return "🎉 Big Offer!";
-    if (discount >= 30) return "💎 Special Discount!";
+    if (discount >= 90) return " Unbelievable Offer!";
+    if (discount >= 70) return " Mega Offer!";
+    if (discount >= 50) return " Big Offer!";
+    if (discount >= 30) return " Special Discount!";
     return null;
   };
 
@@ -39,7 +39,7 @@ const CarCard = ({ car }) => {
       className="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl 
                  hover:-translate-y-1 transition-all duration-500 bg-white cursor-pointer"
     >
-      {/* 🚘 Vehicle Images Auto Carousel */}
+      {/*  Vehicle Images Auto Carousel */}
       <div className="relative w-full h-56 sm:h-64">
         <Swiper
           spaceBetween={10}
@@ -60,7 +60,7 @@ const CarCard = ({ car }) => {
           ))}
         </Swiper>
 
-        {/* 🎉 Discount Badge - Bigger than Price */}
+        {/*  Discount Badge - Bigger than Price */}
         {car.discount > 0 && (
           <motion.div
             animate={{ scale: [1, 1.25, 1], rotate: [0, -5, 5, 0] }}
@@ -68,11 +68,11 @@ const CarCard = ({ car }) => {
             className="absolute top-3 left-3 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 
                        text-white font-extrabold px-6 py-3 rounded-full shadow-2xl text-2xl z-20"
           >
-            🎉 {car.discount}% OFF
+             {car.discount}% OFF
           </motion.div>
         )}
 
-        {/* 🏷️ Offer Ribbon - Auto text based on discount */}
+        {/*  Offer Ribbon - Auto text based on discount */}
         {getOfferText(car.discount) && (
           <motion.div
             animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
@@ -84,7 +84,7 @@ const CarCard = ({ car }) => {
           </motion.div>
         )}
 
-        {/* 💰 Price (smaller than discount/offer) */}
+        {/*  Price (smaller than discount/offer) */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -103,7 +103,7 @@ const CarCard = ({ car }) => {
         </motion.div>
       </div>
 
-      {/* 📋 Vehicle Info */}
+      {/*  Vehicle Info */}
       <div className="p-4 sm:p-6 space-y-3">
         <h2 className="text-xl font-bold text-gray-800">
           {car.brand} {car.model}
@@ -119,7 +119,7 @@ const CarCard = ({ car }) => {
           <p><b>Transmission:</b> {car.transmission}</p>
         </div>
 
-        {/* 📍 Location */}
+        {/*  Location */}
         <div className="mt-4 p-3 border rounded-xl bg-gray-50 shadow-sm w-full">
           <div className="flex items-center mb-2">
             <img src={assets.location_icon} alt="Location" className="h-5 w-5 mr-2" />
@@ -133,7 +133,7 @@ const CarCard = ({ car }) => {
           </div>
         </div>
 
-        {/* ⏱️ Dates */}
+        {/*  Dates */}
         <div className="mt-3 text-xs text-gray-500">
           <p><b>Added On:</b> {new Date(car.createdAt).toLocaleString()}</p>
           <p><b>Updated On:</b> {new Date(car.updatedAt).toLocaleString()}</p>

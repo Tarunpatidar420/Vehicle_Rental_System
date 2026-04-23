@@ -5,10 +5,10 @@ import Car from "../models/Car.js";
 
 const router = express.Router();
 
-// ✅ Public: Get all available vehicles (no login required)
+//  Public: Get all available vehicles (no login required)
 router.get("/available", getAvailableVehicles);
 
-// ✅ Get single vehicle details by ID (public)
+//  Get single vehicle details by ID (public)
 router.get("/:id", async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);  

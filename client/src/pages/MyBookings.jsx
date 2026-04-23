@@ -7,33 +7,36 @@ import { motion } from "motion/react";
 
 const MyBookings = () => {
   const { axios, token, currency } = useAppContext();
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewCar, setViewCar] = useState(null);
-  const [exchangeBooking, setExchangeBooking] = useState(null);
-  const [availableCars, setAvailableCars] = useState([]);
+  const [exchangeBooking, setExchangeBooking] =
+    useState(null);
+  const [availableCars, setAvailableCars] =
+    useState([]);
 
-  // ✅ Fetch login user's bookings
+  // ======================
+  // Fetch Bookings
+  // ======================
   const fetchBookings = async () => {
-    if (!token) {
-      toast.error("Please login to view your bookings");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await axios.get("/api/bookings/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await axios.get(
+        "/api/bookings/user",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      if (res.data.success) {
-        setBookings(res.data.bookings || []);
+      if (data.success) {
+        setBookings(data.bookings || []);
       } else {
-        toast.error(res.data.message || "Failed to fetch bookings");
+        toast.error(data.message);
       }
     } catch (error) {
-      console.error("Error fetching bookings:", error);
-      toast.error("Failed to fetch bookings");
+      toast.error("Failed to load bookings");
     } finally {
       setLoading(false);
     }
@@ -43,93 +46,179 @@ const MyBookings = () => {
     if (token) fetchBookings();
   }, [token]);
 
-  // ✅ Cancel Booking
-  const handleCancel = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+  // ======================
+  // Cancel Booking
+  // ======================
+  const handleCancel = async (
+    bookingId
+  ) => {
+    const ok = window.confirm(
+      "Cancel this booking?"
+    );
+
+    if (!ok) return;
 
     try {
-      const { data } = await axios.delete(`/api/bookings/${bookingId}/cancel`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } =
+        await axios.delete(
+          `/api/bookings/${bookingId}/cancel`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
       if (data.success) {
-        toast.success("Booking cancelled successfully");
-        setBookings((prev) => prev.filter((b) => b._id !== bookingId));
+        toast.success(
+          "Booking cancelled"
+        );
+        fetchBookings();
       } else {
-        toast.error(data.message || "Failed to cancel booking");
+        toast.error(data.message);
       }
-    } catch (error) {
-      console.error("Cancel Booking Error:", error);
-      toast.error("Something went wrong while cancelling");
-    }
-  };
-
-  // ✅ Open exchange modal and fetch available cars
-  const openExchangeModal = async (booking) => {
-    setExchangeBooking(booking);
-
-    try {
-      const { data } = await axios.get("/api/vehicles/available", {
-        params: {
-          pickupDate: booking.pickupDate,
-          returnDate: booking.returnDate,
-        },
-      });
-
-      if (data.success) {
-        setAvailableCars(data.cars || []);
-      } else {
-        toast.error(data.message || "No cars available");
-      }
-    } catch (error) {
-      console.error("Fetch Available Cars Error:", error);
-      toast.error("Failed to fetch available cars");
-    }
-  };
-
-  // ✅ Exchange Vehicle API
-  const handleExchange = async (newCarId) => {
-    try {
-      const { data } = await axios.put(
-        `/api/bookings/${exchangeBooking._id}/exchange`,
-        { newCarId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        toast.success("Car exchanged successfully");
-        setExchangeBooking(null);
-        fetchBookings(); // refresh bookings
-      } else {
-        toast.error(data.message || "Exchange failed");
-      }
-    } catch (error) {
-      console.error("Exchange Error:", error);
-      toast.error(error.response?.data?.message || "Something went wrong");
-    }
-  };
-
-  // ✅ Date formatter
-  const formatDate = (date, withTime = false) => {
-    if (!date) return "--";
-    try {
-      return new Date(date).toLocaleString(
-        "en-IN",
-        withTime
-          ? { dateStyle: "medium", timeStyle: "short" }
-          : { dateStyle: "medium" }
-      );
     } catch {
-      return "--";
+      toast.error(
+        "Cancel failed"
+      );
     }
+  };
+
+  // ======================
+  // Delete Booking
+  // ======================
+  const deleteBooking = async (
+    bookingId
+  ) => {
+    const ok = window.confirm(
+      "Delete this cancelled booking?"
+    );
+
+    if (!ok) return;
+
+    try {
+      const { data } =
+        await axios.delete(
+          `/api/bookings/delete/${bookingId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+      if (data.success) {
+        toast.success(
+          "Booking deleted"
+        );
+        fetchBookings();
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error(
+        "Delete failed"
+      );
+    }
+  };
+
+  // ======================
+  // Open Exchange Modal
+  // ======================
+  const openExchangeModal =
+    async (booking) => {
+      if (
+        booking.status ===
+        "cancelled"
+      )
+        return;
+
+      setExchangeBooking(
+        booking
+      );
+
+      try {
+        const { data } =
+          await axios.get(
+            "/api/bookings/check-availability",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (data.success) {
+          setAvailableCars(
+            data.availableCars || []
+          );
+        }
+      } catch {
+        toast.error(
+          "No vehicles available"
+        );
+      }
+    };
+
+  // ======================
+  // Exchange Vehicle
+  // ======================
+  const handleExchange = async (
+    newCarId
+  ) => {
+    try {
+      const { data } =
+        await axios.put(
+          `/api/bookings/${exchangeBooking._id}/exchange`,
+          { newCarId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+      if (data.success) {
+        toast.success(
+          "Vehicle exchanged"
+        );
+        setExchangeBooking(
+          null
+        );
+        fetchBookings();
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error(
+        "Exchange failed"
+      );
+    }
+  };
+
+  const formatDate = (
+    date
+  ) => {
+    if (!date) return "--";
+
+    return new Date(
+      date
+    ).toLocaleDateString(
+      "en-IN"
+    );
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="px-6 md:px-16 lg:px-24 xl:px-32 2xl:px-48 mt-16 text-sm max-w-7xl"
+      initial={{
+        opacity: 0,
+        y: 30,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16 max-w-7xl"
     >
       <Title
         title="My Bookings"
@@ -137,216 +226,416 @@ const MyBookings = () => {
         align="left"
       />
 
+      {/* Loading */}
       {loading ? (
-        <p className="text-center text-gray-500 mt-10">Loading bookings...</p>
-      ) : bookings.length === 0 ? (
-        <p className="text-center text-gray-500 mt-10">No bookings found.</p>
+        <p className="mt-10 text-center">
+          Loading...
+        </p>
+      ) : bookings.length ===
+        0 ? (
+        <p className="mt-10 text-center">
+          No bookings found
+        </p>
       ) : (
-        bookings.map((booking, index) => (
-          <motion.div
-            key={booking._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
-          >
-            {/* Car Info */}
-            <div className="md:col-span-1">
-              <div className="rounded-md overflow-hidden mb-3">
+        bookings.map(
+          (
+            booking,
+            index
+          ) => (
+            <div
+              key={
+                booking._id
+              }
+              className="grid grid-cols-1 md:grid-cols-4 gap-6 border rounded-xl p-6 mt-6"
+            >
+              {/* Vehicle */}
+              <div>
                 <img
-                  src={booking.car?.images?.[0] || assets.no_image}
+                  src={
+                    booking.car
+                      ?.images?.[0] ||
+                    assets.no_image
+                  }
                   alt="car"
-                  className="w-full h-auto aspect-video object-cover"
+                  className="rounded-lg aspect-video object-cover"
                 />
-              </div>
-              <p className="text-lg font-medium mt-2">
-                {(booking.car?.brand || "Unknown")} {booking.car?.model || ""}
-              </p>
-              <p className="text-gray-500">
-                Year: {booking.car?.year || "--"} • Category:{" "}
-                {booking.car?.categories?.join(", ") || "--"} • Seats:{" "}
-                {booking.car?.seating_capacity || "--"}
-              </p>
-            </div>
 
-            {/* Booking Info */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2">
-                <p className="px-3 py-1.5 bg-light rounded">
-                  Booking #{index + 1}
-                </p>
-                <p
-                  className={`px-3 py-1 text-xs rounded-full ${
-                    booking.status === "confirmed"
-                      ? "bg-green-400/15 text-green-600"
-                      : booking.status === "cancelled"
-                      ? "bg-red-400/15 text-red-600"
-                      : "bg-yellow-400/15 text-yellow-600"
-                  }`}
-                >
-                  {booking.status || "pending"}
+                <h2 className="text-xl font-semibold mt-3">
+                  {
+                    booking
+                      .car
+                      ?.brand
+                  }{" "}
+                  {
+                    booking
+                      .car
+                      ?.model
+                  }
+                </h2>
+
+                <p className="text-gray-500">
+                  Year:{" "}
+                  {
+                    booking
+                      .car
+                      ?.year
+                  }
                 </p>
               </div>
 
-              <div className="flex items-start gap-2 mt-3">
-                <img
-                  src={assets.calendar_icon_colored}
-                  alt="calendar"
-                  className="w-4 h-4 mt-1"
-                />
-                <div>
-                  <p className="text-gray-500">Rental Period</p>
-                  <p>
-                    {booking.pickupDate?.split("T")[0] || "--"} To{" "}
-                    {booking.returnDate?.split("T")[0] || "--"}
+              {/* Booking Info */}
+              <div className="md:col-span-2">
+                <div className="flex gap-2 items-center">
+                  <span className="px-3 py-1 bg-gray-100 rounded">
+                    Booking #
+                    {index +
+                      1}
+                  </span>
+
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm ${
+                      booking.status ===
+                      "confirmed"
+                        ? "bg-green-100 text-green-600"
+                        : booking.status ===
+                          "cancelled"
+                        ? "bg-red-100 text-red-600"
+                        : "bg-yellow-100 text-yellow-600"
+                    }`}
+                  >
+                    {
+                      booking.status
+                    }
+                  </span>
+                </div>
+
+                <p className="mt-5 text-gray-500">
+                  Rental Period:
+                </p>
+
+                <p className="font-medium">
+                  {formatDate(
+                    booking.pickupDate
+                  )}{" "}
+                  To{" "}
+                  {formatDate(
+                    booking.returnDate
+                  )}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col justify-between gap-5">
+                <div className="flex flex-col gap-3">
+                  {/* Exchange */}
+                  <button
+                    disabled={
+                      booking.status ===
+                      "cancelled"
+                    }
+                    onClick={() =>
+                      openExchangeModal(
+                        booking
+                      )
+                    }
+                    className={`py-3 rounded-lg text-white ${
+                      booking.status ===
+                      "cancelled"
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-500 hover:bg-blue-600"
+                    }`}
+                  >
+                    {booking.status ===
+                    "cancelled"
+                      ? "Exchange Disabled"
+                      : "Exchange Vehicle"}
+                  </button>
+
+                  {/* Cancel */}
+                  {booking.status !==
+                    "cancelled" && (
+                    <button
+                      onClick={() =>
+                        handleCancel(
+                          booking._id
+                        )
+                      }
+                      className="py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+                    >
+                      Cancel Booking
+                    </button>
+                  )}
+
+                  {/* Delete */}
+                  {booking.status ===
+                    "cancelled" && (
+                    <button
+                      onClick={() =>
+                        deleteBooking(
+                          booking._id
+                        )
+                      }
+                      className="py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Delete Booking
+                    </button>
+                  )}
+
+                  {/* View Vehicle */}
+                  <button
+                    onClick={() =>
+                      setViewCar(
+                        booking.car
+                      )
+                    }
+                    className="py-3 rounded-lg bg-slate-700 hover:bg-slate-800 text-white"
+                  >
+                    View Vehicle Info
+                  </button>
+                </div>
+
+                {/* Price */}
+                <div className="text-right">
+                  <p className="text-gray-500">
+                    Total Price
+                  </p>
+
+                  <h2 className="text-3xl font-bold text-blue-600">
+                    {currency}
+                    {
+                      booking.price
+                    }
+                  </h2>
+
+                  <p className="text-gray-500">
+                    Booked on{" "}
+                    {formatDate(
+                      booking.createdAt
+                    )}
                   </p>
                 </div>
               </div>
             </div>
-
-            {/* Price + Actions */}
-            <div className="md:col-span-1 flex flex-col justify-between gap-6">
-              <div className="flex flex-col gap-2 mt-4">
-                <button
-                  onClick={() => openExchangeModal(booking)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                >
-                  Exchange Vehicle
-                </button>
-
-                {booking.status !== "cancelled" && (
-                  <button
-                    onClick={() => handleCancel(booking._id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                  >
-                    Cancel Booking
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setViewCar(booking.car)}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
-                >
-                  View Vehicle Info
-                </button>
-              </div>
-
-              <div className="text-sm text-gray-500 text-right">
-                <p>Total Price</p>
-                <h1 className="text-2xl font-semibold text-primary">
-                  {currency}
-                  {booking.price || "0"}
-                </h1>
-                <p>Booked on {booking.createdAt?.split("T")[0] || "--"}</p>
-              </div>
-            </div>
-          </motion.div>
-        ))
+          )
+        )
       )}
 
-      {/* ✅ Vehicle Info Modal */}
+      {/* =======================
+          VIEW VEHICLE MODAL
+      ======================= */}
       {viewCar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-md w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
-              {(viewCar?.brand || "Unknown")} {viewCar?.model || ""}
-            </h2>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
 
-            {/* Images */}
-            <div className="flex gap-2 overflow-x-auto mb-4">
-              {viewCar?.images?.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={img}
-                  alt="car"
-                  className="h-32 w-48 rounded object-cover"
-                />
-              ))}
-            </div>
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-2xl font-bold">
+                {viewCar.brand}{" "}
+                {viewCar.model}
+              </h2>
 
-            {/* Vehicle Info */}
-            <h1 className="text-3xl font-bold text-primary mb-2">
-              {currency}
-              {viewCar?.pricePerDay || 0}/day
-            </h1>
-
-            <p><b>Seats:</b> {viewCar?.seating_capacity || "--"}</p>
-            <p><b>Available Count:</b> {viewCar?.availableCount || "--"}</p>
-            <p><b>Discount:</b> {viewCar?.discount || 0}%</p>
-            <p><b>Fuel:</b> {viewCar?.fuel_type || "--"}</p>
-            <p><b>Transmission:</b> {viewCar?.transmission || "--"}</p>
-            <p><b>Category:</b> {viewCar?.categories?.join(", ") || "--"}</p>
-            <p><b>Location:</b> {viewCar?.location?.line1}, {viewCar?.location?.line2}, {viewCar?.location?.city}, {viewCar?.location?.state} - {viewCar?.location?.pincode}</p>
-            <p><b>Email:</b> {viewCar?.email || "--"}</p>
-            <p><b>Whatsapp:</b> {viewCar?.whatsapp || "--"}</p>
-            <p><b>Description:</b> {viewCar?.description || "--"}</p>
-
-            {/* ✅ Added & Updated Date */}
-            <p className="text-sm text-gray-500 mt-2">
-              <b>Added On:</b> {formatDate(viewCar?.createdAt, true)} <br />
-              <b>Last Updated:</b> {formatDate(viewCar?.updatedAt, true)}
-            </p>
-
-            <div className="flex justify-end mt-4">
               <button
-                onClick={() => setViewCar(null)}
-                className="px-4 py-2 bg-gray-400 text-white rounded"
+                onClick={() =>
+                  setViewCar(
+                    null
+                  )
+                }
+                className="px-4 py-2 bg-red-500 text-white rounded"
               >
                 Close
               </button>
+            </div>
+
+            {/* Images */}
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              {viewCar.images?.map(
+                (
+                  img,
+                  i
+                ) => (
+                  <img
+                    key={i}
+                    src={img}
+                    alt="vehicle"
+                    className="w-full h-56 object-cover rounded-lg"
+                  />
+                )
+              )}
+            </div>
+
+            {/* Details */}
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+
+              <p>
+                <b>Brand:</b>{" "}
+                {viewCar.brand}
+              </p>
+
+              <p>
+                <b>Model:</b>{" "}
+                {viewCar.model}
+              </p>
+
+              <p>
+                <b>Year:</b>{" "}
+                {viewCar.year}
+              </p>
+
+              <p>
+                <b>Fuel:</b>{" "}
+                {viewCar.fuel_type}
+              </p>
+
+              <p>
+                <b>Transmission:</b>{" "}
+                {
+                  viewCar.transmission
+                }
+              </p>
+
+              <p>
+                <b>Seats:</b>{" "}
+                {
+                  viewCar.seating_capacity
+                }
+              </p>
+
+              <p>
+                <b>Price/Day:</b>{" "}
+                ₹
+                {
+                  viewCar.pricePerDay
+                }
+              </p>
+
+              <p>
+                <b>Available:</b>{" "}
+                {
+                  viewCar.availableCount
+                }
+              </p>
+
+              <p>
+                <b>Email:</b>{" "}
+                {viewCar.email}
+              </p>
+
+              <p>
+                <b>Whatsapp:</b>{" "}
+                {
+                  viewCar.whatsapp
+                }
+              </p>
+
+              <p className="md:col-span-2">
+                <b>Description:</b>{" "}
+                {viewCar.description ||
+                  "--"}
+              </p>
+
+              <p className="md:col-span-2">
+                <b>Location:</b>{" "}
+                {
+                  viewCar.location
+                    ?.line1
+                }
+                ,{" "}
+                {
+                  viewCar.location
+                    ?.line2
+                }
+                ,{" "}
+                {
+                  viewCar.location
+                    ?.city
+                }
+                ,{" "}
+                {
+                  viewCar.location
+                    ?.state
+                }{" "}
+                -{" "}
+                {
+                  viewCar.location
+                    ?.pincode
+                }
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* ✅ Exchange Modal */}
+      {/* =======================
+          EXCHANGE MODAL
+      ======================= */}
       {exchangeBooking && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-md w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
-              Exchange Booking #{exchangeBooking._id}
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+
+            <h2 className="text-xl font-bold mb-5">
+              Select New
+              Vehicle
             </h2>
 
-            {availableCars.length === 0 ? (
-              <p className="text-gray-500">No cars available for this period.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {availableCars.map((car) => (
+            <div className="grid md:grid-cols-2 gap-4">
+              {availableCars.map(
+                (car) => (
                   <div
-                    key={car._id}
-                    className="border p-3 rounded-lg flex flex-col"
+                    key={
+                      car._id
+                    }
+                    className="border rounded-lg p-3"
                   >
                     <img
-                      src={car.images?.[0] || assets.no_image}
-                      alt={car.model}
-                      className="h-32 w-full object-cover rounded mb-2"
+                      src={
+                        car
+                          .images?.[0]
+                      }
+                      alt="car"
+                      className="h-40 w-full object-cover rounded"
                     />
-                    <h3 className="font-medium">
-                      {(car.brand || "Unknown")} {car.model}
+
+                    <h3 className="font-semibold mt-2">
+                      {
+                        car.brand
+                      }{" "}
+                      {
+                        car.model
+                      }
                     </h3>
-                    <p className="text-sm text-gray-500">
+
+                    <p className="text-gray-500">
                       {currency}
-                      {car.pricePerDay}/day
+                      {
+                        car.pricePerDay
+                      }
+                      /day
                     </p>
+
                     <button
-                      onClick={() => handleExchange(car._id)}
-                      className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm"
+                      onClick={() =>
+                        handleExchange(
+                          car._id
+                        )
+                      }
+                      className="mt-3 w-full bg-blue-500 text-white py-2 rounded"
                     >
-                      Select This Car
+                      Select
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setExchangeBooking(null)}
-                className="px-4 py-2 bg-gray-400 text-white rounded"
-              >
-                Close
-              </button>
+                )
+              )}
             </div>
+
+            <button
+              onClick={() =>
+                setExchangeBooking(
+                  null
+                )
+              }
+              className="mt-5 px-5 py-2 bg-gray-500 text-white rounded"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

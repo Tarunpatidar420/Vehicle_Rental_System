@@ -3,25 +3,25 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Car from "../models/Car.js";
 
-/* ===========================
-   🔑 Generate JWT Token
-   (OWNER INFO INCLUDED)
-=========================== */
+
+   // Generate JWT Token
+  // (OWNER INFO INCLUDED)
+
 const generateToken = (user, isOwner = false) => {
   return jwt.sign(
     {
       _id: user._id,
       email: user.email,
-      isOwner, // 🔥 MOST IMPORTANT LINE
+      isOwner, //  MOST IMPORTANT LINE
     },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
 };
 
-/* ===========================
-   👤 REGISTER USER
-=========================== */
+
+   // REGISTER USER
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -72,9 +72,9 @@ export const registerUser = async (req, res) => {
   }
 };
 
-/* ===========================
-   🔓 LOGIN USER (OWNER SAFE)
-=========================== */
+
+   // LOGIN USER (OWNER SAFE)
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password, dashboardKey } = req.body;
@@ -96,9 +96,9 @@ export const loginUser = async (req, res) => {
       return res.json({ success: false, message: "Invalid credentials" });
     }
 
-    /* ===========================
-       👑 OWNER CHECK (STRICT)
-    =========================== */
+   
+       // OWNER CHECK (STRICT)
+    
     let isOwner = false;
 
     if (email === process.env.OWNER_EMAIL) {
@@ -119,7 +119,7 @@ export const loginUser = async (req, res) => {
       isOwner = true;
     }
 
-    // 🔥 TOKEN WITH OWNER FLAG
+    //  TOKEN WITH OWNER FLAG
     const token = generateToken(user, isOwner);
 
     return res.json({
@@ -133,9 +133,9 @@ export const loginUser = async (req, res) => {
   }
 };
 
-/* ===========================
-   👤 GET USER DATA
-=========================== */
+
+   // GET USER DATA
+
 export const getUserData = async (req, res) => {
   try {
     if (!req.user) {
@@ -144,16 +144,16 @@ export const getUserData = async (req, res) => {
 
     return res.json({
       success: true,
-      user: req.user, // 👈 contains isOwner now
+      user: req.user, //  contains isOwner now
     });
   } catch (err) {
     return res.json({ success: false, message: err.message });
   }
 };
 
-/* ===========================
-   🚗 GET AVAILABLE CARS
-=========================== */
+
+   // GET AVAILABLE CARS
+
 export const getCars = async (req, res) => {
   try {
     const cars = await Car.find({ isAvailable: true });

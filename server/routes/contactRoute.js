@@ -1,4 +1,4 @@
-// server/routes/contactRoute.js
+
 import express from "express";
 import { sendContactMail } from "../controllers/contactController.js";
 

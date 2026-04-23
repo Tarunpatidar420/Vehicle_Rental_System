@@ -49,7 +49,7 @@ const Dashboard = () => {
         subTitle="Monitor overall platform performance including total cars, bookings, revenue, and recent activities"
       />
 
-      {/* ✅ Stats Cards */}
+      {/*  Stats Cards */}
       <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-8 max-w-3xl">
         {dashboardCards.map((card, index) => (
           <div
@@ -68,7 +68,7 @@ const Dashboard = () => {
       </div>
 
       <div className="flex flex-wrap items-start gap-6 mb-8 w-full">
-        {/* ✅ Recent Bookings Section */}
+        {/*  Recent Bookings Section */}
         <div className="p-4 md:p-6 border border-borderColor rounded-md max-w-lg w-full">
           <h1 className="text-lg font-medium">Recent Bookings</h1>
           <p className="text-gray-500 mb-2">Latest customer bookings</p>
@@ -119,7 +119,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* ✅ Monthly Revenue Section */}
+        {/*  Monthly Revenue Section */}
         <div className="p-4 md:p-6 mb-6 border border-borderColor rounded-md w-full md:max-w-xs">
           <h1 className="text-lg font-medium">Monthly Revenue</h1>
           <p className="text-gray-500">Revenue for current month</p>

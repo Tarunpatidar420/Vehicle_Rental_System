@@ -14,7 +14,7 @@ const FeaturedSection = () => {
   const queryParams = new URLSearchParams(location.search)
   const exchangeBookingId = queryParams.get("exchangeBookingId")
 
-  // ✅ Sirf available cars filter karo
+  //  available cars filter 
   const availableCars = (cars || []).filter((car) => car.isAvailable)
 
   console.log("Available cars:", availableCars)

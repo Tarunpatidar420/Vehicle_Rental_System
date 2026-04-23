@@ -3,9 +3,9 @@ import axiosLib from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-/* =========================
-   🌐 Axios Instance
-========================= */
+
+   // Axios Instance
+
 const axios = axiosLib.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
 });
@@ -25,9 +25,9 @@ export const AppProvider = ({ children }) => {
   const [returnDate, setReturnDate] = useState("");
   const [cars, setCars] = useState([]);
 
-  /* =========================
-     🔐 Axios Interceptor
-========================= */
+  
+     //Axios Interceptor
+
   useEffect(() => {
     const interceptor = axios.interceptors.request.use((config) => {
       const t = localStorage.getItem("token");
@@ -39,8 +39,8 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   /* =========================
-     👤 Fetch Logged-in User
-     ✅ OWNER comes from backend
+      Fetch Logged-in User
+      OWNER comes from backend
 ========================= */
   const fetchUser = async () => {
     if (!token) return;
@@ -50,7 +50,7 @@ export const AppProvider = ({ children }) => {
 
       if (data?.success && data?.user) {
         setUser(data.user);
-        setIsOwner(Boolean(data.user.isOwner)); // 🔥 ONLY HERE
+        setIsOwner(Boolean(data.user.isOwner)); //  ONLY HERE
       } else {
         setUser(null);
         setIsOwner(false);
@@ -62,7 +62,7 @@ export const AppProvider = ({ children }) => {
   };
 
   /* =========================
-     🚗 Fetch Cars
+      Fetch Cars
 ========================= */
   const fetchCars = async () => {
     try {
@@ -76,7 +76,7 @@ export const AppProvider = ({ children }) => {
   };
 
   /* =========================
-     🔓 Logout
+      Logout
 ========================= */
   const logout = () => {
     localStorage.removeItem("token");
@@ -88,7 +88,7 @@ export const AppProvider = ({ children }) => {
   };
 
   /* =========================
-     🔄 Auto Fetch
+      Auto Fetch
 ========================= */
   useEffect(() => {
     fetchUser();
@@ -96,7 +96,7 @@ export const AppProvider = ({ children }) => {
   }, [token]);
 
   /* =========================
-     🌍 Context Value
+      Context Value
 ========================= */
   const value = {
     navigate,
@@ -106,7 +106,7 @@ export const AppProvider = ({ children }) => {
     token,
     setToken,
     isOwner,
-    setIsOwner, // ⚠️ normally only Login.jsx uses this
+    setIsOwner, //  normally only Login.jsx uses this
     showLogin,
     setShowLogin,
     logout,

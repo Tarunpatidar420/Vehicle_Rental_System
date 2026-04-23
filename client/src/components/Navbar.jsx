@@ -11,24 +11,24 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  /* =========================
-     🎯 Primary Button Action
-     (SINGLE SOURCE OF TRUTH)
-  ========================= */
+  
+      //Primary Button Action
+     
+  
   const handlePrimaryAction = () => {
-    // 🔒 not logged in
+    //  not logged in
     if (!user) {
       setShowLogin(true);
       return;
     }
 
-    // 👑 owner
+    //  owner
     if (isOwner) {
       navigate("/owner");
       return;
     }
 
-    // 👤 normal user
+    //  normal user
     navigate("/cars");
   };
 
