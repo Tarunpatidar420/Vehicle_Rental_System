@@ -62,7 +62,7 @@ export const AppProvider = ({ children }) => {
   };
 
   /* =========================
-      Fetch Cars
+      Fetch vehicles
 ========================= */
   const fetchCars = async () => {
     try {

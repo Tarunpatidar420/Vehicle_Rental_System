@@ -38,7 +38,7 @@ const carSchema = new mongoose.Schema(
 
     discount: { type: Number, default: 0, min: 0, max: 100 },
 
-    //  Kitni gaadi physically hai (stock count)
+    
     availableCount: { type: Number, required: true, default: 1, min: 0 },
 
     location: {

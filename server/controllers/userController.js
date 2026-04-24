@@ -12,7 +12,7 @@ const generateToken = (user, isOwner = false) => {
     {
       _id: user._id,
       email: user.email,
-      isOwner, //  MOST IMPORTANT LINE
+      isOwner, 
     },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }

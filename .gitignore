@@ -1,8 +1,8 @@
 # ======================
 # ENV FILES
 # ======================
-client/.env
-server/.env
+# client/.env
+# server/.env
 
 # ======================
 # DEPENDENCIES
@@ -13,5 +13,5 @@ server/node_modules/
 # ======================
 # JUNK / LOCAL FOLDERS
 # ======================
-client/cmd/
-client/git/
+# client/cmd/
+# client/git/

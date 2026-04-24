@@ -2,14 +2,14 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    //  Booked Car Reference
+    //  Booked vehicle Reference
     car: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Car",
       required: true,
     },
 
-    //  Owner of the Car (car owner id)
+    //  Owner of the vehicle (vehicle owner id)
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -23,7 +23,7 @@ const bookingSchema = new mongoose.Schema(
       required: false,
     },
 
-    //  Guest / User Details (always saved)
+    
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true, lowercase: true },
     whatsapp: { type: String, required: true, trim: true },
@@ -38,7 +38,7 @@ const bookingSchema = new mongoose.Schema(
     pickupDate: { type: Date, required: true },
     returnDate: { type: Date, required: true },
 
-    //  Quantity (how many cars booked at once)
+    //  Quantity (how many vehicle booked at once)
     quantity: { type: Number, default: 1, min: 1 },
 
     //  Pricing

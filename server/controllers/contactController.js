@@ -1,4 +1,4 @@
-// server/controllers/contactController.js
+
 import nodemailer from "nodemailer";
 
 export const sendContactMail = async (req, res) => {
@@ -38,13 +38,13 @@ export const sendContactMail = async (req, res) => {
         .json({ success: false, message: "Mail configuration missing" });
     }
 
-    // transporter
+    
    // transporter
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false,       // TLS ke liye false
-  requireTLS: true,    //  Render par zaruri
+  secure: false,       
+  requireTLS: true,    
   auth: {
     user: SMTP_USER,
     pass: SMTP_PASS,
@@ -55,7 +55,7 @@ const transporter = nodemailer.createTransport({
 
 
     // ================================
-    //  Owner Email (User’s details)
+    //  Owner Email (User details)
     // ================================
     const ownerHtml = `
       <h2> New Contact Form Submission</h2>

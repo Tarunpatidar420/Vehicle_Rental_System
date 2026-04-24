@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ReactTyped } from "react-typed"; //  Correct import
-import { assets } from "../assets/assets"; //  Correct path
+import { ReactTyped } from "react-typed"; 
+import { assets } from "../assets/assets"; 
 
 const Footer = () => {
   return (

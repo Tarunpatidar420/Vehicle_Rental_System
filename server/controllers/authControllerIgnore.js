@@ -1,7 +1,7 @@
-// server/controllers/authController.js
-import User from "../models/User.js"; // tumhara user model ka path
+
+import User from "../models/User.js"; //  user model path
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs"; // agar pass hashing yahi use hoti hai
+import bcrypt from "bcryptjs"; //  pass hashing 
 import "dotenv/config";
 
 const JWT_SECRET = process.env.JWT_SECRET;

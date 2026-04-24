@@ -130,7 +130,7 @@ const Hero = () => {
         </motion.button>
       </motion.form>
 
-      {/*  Car Carousel */}
+      {/*  Car  */}
       <div className="relative w-full max-w-7xl">
         <h2 className="text-lg sm:text-xl font-bold text-left mb-3 px-2">
           Explore Cars

@@ -12,8 +12,8 @@ const Home = () => {
       <CategoriesSection />   {/*  Modern vehicle categories */}
       <FeaturedSection />
       <Banner />
-      {/*  <Testimonial /> remove kar diya */}
-      <ContactSection />     {/*  Contact Section jo aapne banaya hai */}
+      {/*  <Testimonial /> */}
+      <ContactSection />     {/*   */}
     </>
   )
 }

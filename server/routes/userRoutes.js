@@ -31,7 +31,7 @@ userRouter.get("/data", protect, getUserData);
    
 
 
-// Get all available cars 
+// Get all available vehicles 
 userRouter.get("/cars", getCars);
 
 export default userRouter;

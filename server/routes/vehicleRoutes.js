@@ -1,4 +1,4 @@
-// server/routes/vehicleRoutes.js
+
 import express from "express";
 import { getAvailableVehicles } from "../controllers/vehicleController.js";
 import Car from "../models/Car.js";

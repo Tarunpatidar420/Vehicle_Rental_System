@@ -1,4 +1,4 @@
-// middleware/optionalAuth.js
+
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
@@ -11,10 +11,10 @@ export const optionalProtect = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select("-password");
     } catch (error) {
       console.log("Optional auth failed:", error.message);
-      req.user = null; //  zaroori hai, warna undefined rahega
+      req.user = null; 
     }
   } else {
-    req.user = null; //  agar guest hai
+    req.user = null; 
   }
 
   next();
